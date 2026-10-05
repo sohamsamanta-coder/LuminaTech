@@ -1,0 +1,104 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}
+    {{ product.name }} - LuminaTech
+{% endblock %}
+
+{% block content %}
+
+<section class="product-detail-page">
+    <a href="{% url 'home-page' %}" class="back-to-store">
+        ← Back to LuminaTech
+    </a>
+
+    <div class="product-detail-layout">
+        <div class="product-gallery">
+            <div class="product-main-image">
+                <img
+                    src="{% static product.image %}"
+                    alt="{{ product.name }}"
+                >
+            </div>
+            <div class="product-thumbnail">
+                <img
+                    src="{% static product.image %}"
+                    alt="{{ product.name }}"
+                >
+            </div>
+        </div>
+
+        <div class="product-detail-info">
+            <p class="detail-category">
+                {{ product.category }}
+            </p>
+
+            <h1>
+                {{ product.name }}
+            </h1>
+
+            <div class="detail-divider"></div>
+
+            <p class="detail-price">
+                ₹{{ product.price|floatformat:0 }}
+            </p>
+
+            {% if product.description %}
+                <p class="detail-description">
+                    {{ product.description }}
+                </p>
+            {% endif %}
+
+            <div class="detail-actions">
+                <button
+                    class="detail-add-button add-button"
+                    type="button"
+                    data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.name|escape }}"
+                >
+                    🛒 Add to Cart
+                </button>
+
+                <button
+                    class="buy-now-button"
+                    type="button"
+                    data-product-id="{{ product.id }}"
+                    data-product-name="{{ product.name|escape }}"
+                >
+                    ⚡ Buy Now
+                </button>
+            </div>
+
+            <div class="detail-features">
+                <div class="feature-item">
+                    <strong>Category</strong>
+                    <span>{{ product.category }}</span>
+                </div>
+
+                <div class="feature-item">
+                    <strong>Availability</strong>
+                    <span>Available</span>
+                </div>
+
+                <div class="feature-item">
+                    <strong>Delivery</strong>
+                    <span>Fast delivery</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="product-about">
+        <h2>About this item</h2>
+
+        {% if product.description %}
+            <p>{{ product.description }}</p>
+        {% else %}
+            <p>
+                No additional information is available for this product yet.
+            </p>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

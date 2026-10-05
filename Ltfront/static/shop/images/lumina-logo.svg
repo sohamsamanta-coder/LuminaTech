@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="title desc">
+  <title id="title">Lumina AI moon robot logo</title>
+  <desc id="desc">A friendly robot nestled inside a crescent moon with blue and purple technology accents.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- circular badge -->
+  <circle cx="50" cy="50" r="47" fill="#0f172a"/>
+  <circle cx="50" cy="50" r="47" fill="none" stroke="url(#bg)" stroke-width="4"/>
+
+  <!-- stars -->
+  <g fill="#ffffff" opacity=".9">
+    <circle cx="73" cy="23" r="1.5"/>
+    <circle cx="82" cy="36" r="1"/>
+    <circle cx="25" cy="24" r="1"/>
+  </g>
+
+  <!-- crescent moon -->
+  <path d="M31 18a30 30 0 1 0 31 49A25 25 0 1 1 31 18z" fill="url(#moon)" filter="url(#glow)"/>
+  <g fill="#94a3b8" opacity=".35">
+    <circle cx="22" cy="43" r="4"/>
+    <circle cx="30" cy="61" r="3"/>
+    <circle cx="26" cy="30" r="2"/>
+  </g>
+
+  <!-- antenna -->
+  <path d="M50 28V20" stroke="#e2e8f0" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="50" cy="17" r="4" fill="#38bdf8" stroke="#fff" stroke-width="1.5" filter="url(#glow)"/>
+
+  <!-- robot head -->
+  <rect x="30" y="29" width="40" height="32" rx="11" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+
+  <!-- ears -->
+  <circle cx="29" cy="45" r="6" fill="#e2e8f0" stroke="#38bdf8" stroke-width="2"/>
+  <circle cx="71" cy="45" r="6" fill="#e2e8f0" stroke="#38bdf8" stroke-width="2"/>
+
+  <!-- visor -->
+  <rect x="35" y="35" width="30" height="18" rx="8" fill="#0b1224"/>
+
+  <!-- eyes -->
+  <path d="M41 44q3-5 6 0" fill="none" stroke="#67e8f9" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M53 44q3-5 6 0" fill="none" stroke="#67e8f9" stroke-width="2.4" stroke-linecap="round"/>
+
+  <!-- neck/body -->
+  <path d="M40 60h20l5 7H35z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="35" y="64" width="30" height="15" rx="7" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+
+  <!-- chest light -->
+  <circle cx="50" cy="71" r="5" fill="#0f172a" stroke="#60a5fa" stroke-width="2" filter="url(#glow)"/>
+  <circle cx="50" cy="71" r="2" fill="#67e8f9"/>
+
+  <!-- arms -->
+  <rect x="29" y="64" width="7" height="14" rx="3.5" fill="#e2e8f0" transform="rotate(12 29 64)"/>
+  <rect x="64" y="64" width="7" height="14" rx="3.5" fill="#e2e8f0" transform="rotate(-12 64 64)"/>
+
+  <!-- small moon/tech spark -->
+  <path d="M78 56l1.5 3.5L83 61l-3.5 1.5L78 66l-1.5-3.5L73 61l3.5-1.5z" fill="#f8fafc" opacity=".9"/>
+</svg>

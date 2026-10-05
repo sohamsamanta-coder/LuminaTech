@@ -1,0 +1,225 @@
+{% extends "shop/base.html" %}
+{% load static %}
+
+
+{% block title %}
+    LuminaTech Electronics Store
+{% endblock %}
+{% block header_class %}
+    hero-header
+{% endblock %}
+
+{% block content %}
+
+    <!-- ================= HERO SECTION ================= -->
+
+    <section class="hero-section">
+
+        <div class="hero-overlay"></div>
+
+        <div class="hero-content">
+
+            <p class="hero-eyebrow">
+                SMART TECHNOLOGY. BETTER LIVING.
+            </p>
+            <h1>
+                Power Up Your World
+            </h1>
+
+            <p class="hero-description">
+                Discover the latest laptops, smartphones, gaming devices,
+                headphones and more — all in one place.
+            </p>
+
+            <a
+                href="#products"
+                class="hero-button"
+            >
+                Shop Now
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= STORE CONTENT ================= -->
+
+    <section
+        class="shop-section"
+        aria-labelledby="shop-title"
+    >
+
+        <p class="eyebrow">
+            TECHNOLOGY FOR EVERYDAY LIFE
+        </p>
+
+        <h2 id="shop-title">
+            Electronics Store
+        </h2>
+
+
+        <!-- ================= FILTER AREA ================= -->
+
+        <div class="filter-area">
+
+            <label
+                class="sr-only"
+                for="productSearch"
+            >
+                Search electronics
+            </label>
+
+            <input
+                id="productSearch"
+                type="search"
+                placeholder="Search electronics..."
+                autocomplete="off"
+            >
+
+
+            <label
+                class="sr-only"
+                for="categoryFilter"
+            >
+                Filter by category
+            </label>
+
+            <select id="categoryFilter">
+
+                <option value="">
+                    All Categories
+                </option>
+
+                {% for category in categories %}
+
+                    <option value="{{ category }}">
+                        {{ category }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <button
+                id="searchBtn"
+                type="button"
+            >
+                Search
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= PRODUCTS ================= -->
+
+    <section
+        id="products"
+        class="products"
+        aria-label="Products"
+    >
+
+        {% for product in products %}
+
+            <article
+                class="product-card"
+                data-name="{{ product.name|lower }}"
+                data-category="{{ product.category|lower }}"
+                data-product-id="{{ product.id }}"
+                data-product-name="{{ product.name|escape }}"
+            >
+
+                <div class="product-line"></div>
+
+
+                <!-- PRODUCT IMAGE -->
+
+                <div class="product-image">
+
+                    <img
+                        src="{% static product.image %}"
+                        alt="{{ product.name }}"
+                        loading="lazy"
+                        width="300"
+                        height="200"
+                    >
+
+                </div>
+
+
+                <!-- PRODUCT DETAILS -->
+
+                <div class="product-details">
+
+                    <p class="category">
+                        {{ product.category }}
+                    </p>
+
+
+                    <h3>
+                        {{ product.name }}
+                    </h3>
+
+
+                    {% if product.description %}
+
+                        <p class="product-description">
+                            {{ product.description }}
+                        </p>
+
+                    {% endif %}
+
+
+                    <p class="price">
+                        ₹{{ product.price|floatformat:0 }}
+                    </p>
+
+
+                    <button
+                        class="add-button"
+                        type="button"
+                    >
+                        🛒 Add to Cart
+                    </button>
+
+                </div>
+
+            </article>
+
+
+        {% empty %}
+
+            <p class="empty-message empty-message-full">
+
+                No electronics products are available yet.
+
+                Run
+
+                <code>
+                    python manage.py seed_products
+                </code>
+
+                to add the demo products.
+
+            </p>
+
+        {% endfor %}
+
+    </section>
+
+
+    <!-- EMPTY SEARCH RESULT -->
+
+    <p
+        id="emptyMessage"
+        class="empty-message"
+        hidden
+    >
+        No electronics products match your search.
+    </p>
+
+
+{% endblock %}

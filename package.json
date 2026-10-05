@@ -1,0 +1,18 @@
+{
+  "name": "luminatech",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+"scripts": {
+    "build:css": "tailwindcss -i ./Ltfront/static/shop/css/tailwind-input.css -o ./Ltfront/static/shop/css/tailwind.css --watch"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "daisyui": "^5.7.46",
+    "tailwindcss": "^4.3.3"
+  }
+}

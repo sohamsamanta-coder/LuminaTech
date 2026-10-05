@@ -1,0 +1,24 @@
+from django.db import models
+
+
+class Product(models.Model):
+    CATEGORY_CHOICES = [
+        ("Laptops", "Laptops"),
+        ("Smartphones", "Smartphones"),
+        ("Headphones", "Headphones"),
+        ("Televisions", "Televisions"),
+        ("Gaming", "Gaming"),
+        ("Accessories", "Accessories"),
+    ]
+
+    name = models.CharField(max_length=150, unique=True)
+    category = models.CharField(max_length=30, choices=CATEGORY_CHOICES)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    image = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return self.name

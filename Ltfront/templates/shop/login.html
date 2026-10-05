@@ -1,0 +1,78 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Login | LuminaTech</title>
+
+    <link rel="stylesheet" href="{% static 'shop/css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'shop/css/tailwind.css' %}" />
+    <link rel="stylesheet" href="{% static 'shop/css/style.css' %}" />
+  </head>
+
+  <body>
+    <div class="auth-page">
+      <div class="auth-card">
+        <h1>Login</h1>
+
+        <p class="auth-subtitle">Login to your LuminaTech account.</p>
+
+        {% comment %} {% if messages %} {% for message in messages %}
+        <div class="auth-message">{{ message }}</div>
+        {% endfor %} {% endif %} {% endcomment %}
+
+        <form method="POST">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label for="username"> Username </label>
+
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="password"> Password </label>
+
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+         {% if messages %}
+    {% for message in messages %}
+        {% if message.tags == "error" %}
+            <div class="form-error">
+                {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+          <button type="submit" class="auth-button">Login</button>
+        </form>
+
+        <p class="auth-switch">
+          Don't have an account?
+
+          <a href="{% url 'signup' %}"> Create Account </a>
+        </p>
+
+        <a href="{% url 'home-page' %}" class="back-home">
+          ← Back to LuminaTech
+        </a>
+      </div>
+    </div>
+  </body>
+</html>
