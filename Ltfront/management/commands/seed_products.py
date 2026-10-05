@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from Ltfront.models import Product
+from Ltfront.models import Product, ProductSpecification
 
 
 PRODUCTS = [
@@ -286,7 +286,30 @@ PRODUCTS = [
     },
 
 ]
+PRODUCT_SPECS = {
+    "HP Omen 16": [
+        ("Configuration", "Without HP Care"),
+        ("Brand", "HP"),
+        ("Model Name", "HP Gaming Laptop"),
+        ("Screen Size", "16 Inches"),
+        ("Colour", "Shadow Black"),
+        ("Hard Disk Size", "1 TB"),
+        ("CPU Model", "Intel Core Ultra 7"),
+        ("RAM Memory", "24 GB"),
+        ("Operating System", "Windows 11 Home"),
+        ("Special Feature", "Anti Glare Coating, Backlit Keyboard"),
+        ("Graphics Card", "Dedicated"),
+    ],
 
+    "Dell Inspiron 15": [
+        ("Brand", "Dell"),
+        ("Model Name", "Inspiron 15"),
+        ("Screen Size", "15.6 Inches"),
+        ("Storage", "512 GB SSD"),
+        ("RAM Memory", "16 GB"),
+        ("Operating System", "Windows 11"),
+    ],
+}
 
 class Command(BaseCommand):
     help = "Create or update the demo electronics products."
@@ -297,7 +320,8 @@ class Command(BaseCommand):
 
         for product_data in PRODUCTS:
             name = product_data["name"]
-            _, created = Product.objects.update_or_create(
+
+            product, created = Product.objects.update_or_create(
                 name=name,
                 defaults=product_data,
             )
@@ -306,6 +330,18 @@ class Command(BaseCommand):
                 created_count += 1
             else:
                 updated_count += 1
+
+            specifications = PRODUCT_SPECS.get(name, [])
+
+            ProductSpecification.objects.filter(product=product).delete()
+
+            for order, (label, value) in enumerate(specifications, start=1):
+                ProductSpecification.objects.create(
+                    product=product,
+                    label=label,
+                    value=value,
+                    order=order,
+                )
 
         self.stdout.write(
             self.style.SUCCESS(
