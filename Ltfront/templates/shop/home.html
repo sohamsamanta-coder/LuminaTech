@@ -139,13 +139,23 @@
 
                 <div class="product-image">
 
-                    <img
-                        src="{% static product.image %}"
-                        alt="{{ product.name }}"
-                        loading="lazy"
-                        width="300"
-                        height="200"
-                    >
+                    {% if product.uploaded_image %}
+                        <img
+                            src="{{ product.uploaded_image.url }}"
+                            alt="{{ product.name }}"
+                            loading="lazy"
+                            width="300"
+                            height="200"
+                        >
+                    {% else %}
+                        <img
+                            src="{% static product.image %}"
+                            alt="{{ product.name }}"
+                            loading="lazy"
+                            width="300"
+                            height="200"
+                        >
+                    {% endif %}
 
                 </div>
 

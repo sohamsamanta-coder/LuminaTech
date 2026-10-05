@@ -15,19 +15,33 @@
     <div class="product-detail-layout">
         <div class="product-gallery">
             <div class="product-main-image">
-                <img
-                    src="{% static product.image %}"
-                    alt="{{ product.name }}"
-                >
+                {% if product.uploaded_image %}
+                    <img
+                        src="{{ product.uploaded_image.url }}"
+                        alt="{{ product.name }}"
+                    >
+                {% else %}
+                    <img
+                        src="{% static product.image %}"
+                        alt="{{ product.name }}"
+                    >
+                {% endif %}
             </div>
+
             <div class="product-thumbnail">
-                <img
-                    src="{% static product.image %}"
-                    alt="{{ product.name }}"
-                >
+                {% if product.uploaded_image %}
+                    <img
+                        src="{{ product.uploaded_image.url }}"
+                        alt="{{ product.name }}"
+                    >
+                {% else %}
+                    <img
+                        src="{% static product.image %}"
+                        alt="{{ product.name }}"
+                    >
+                {% endif %}
             </div>
         </div>
-
         <div class="product-detail-info">
             <p class="detail-category">
                 {{ product.category }}
