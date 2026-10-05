@@ -1300,6 +1300,58 @@ button {
         gap: 4px;
     }
 }
+.system-details {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 1px solid #dddddd;
+}
+
+.system-details h2 {
+    margin: 0 0 25px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.specification-table {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.specification-row {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.specification-row:last-child {
+    border-bottom: none;
+}
+
+.specification-label {
+    padding: 14px 18px;
+    background: #f5f5f5;
+    font-weight: 700;
+    color: #222222;
+}
+
+.specification-value {
+    padding: 14px 18px;
+    color: #444444;
+    background: #ffffff;
+}
+
+@media (max-width: 600px) {
+    .specification-row {
+        grid-template-columns: 1fr;
+    }
+
+    .specification-label {
+        border-bottom: 1px solid #e5e5e5;
+    }
+}
 .welcome-user {
     color: white;
     font-size: 14px;

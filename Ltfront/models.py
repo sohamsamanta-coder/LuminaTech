@@ -26,3 +26,19 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+class ProductSpecification(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="specifications"
+    )
+    label = models.CharField(max_length=100)
+    value = models.TextField()
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.label}"

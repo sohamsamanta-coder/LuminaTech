@@ -113,6 +113,26 @@
             </p>
         {% endif %}
     </div>
+
+    {% if product.specifications.exists %}
+        <section class="system-details">
+            <h2>System Details</h2>
+
+            <div class="specification-table">
+                {% for specification in product.specifications.all %}
+                    <div class="specification-row">
+                        <div class="specification-label">
+                            {{ specification.label }}
+                        </div>
+
+                        <div class="specification-value">
+                            {{ specification.value }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 </section>
 
 {% endblock %}
