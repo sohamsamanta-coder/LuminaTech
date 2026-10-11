@@ -230,6 +230,48 @@
     >
         No electronics products match your search.
     </p>
+            {% if page_obj.paginator.num_pages > 1 %}
+            <nav class="product-pagination-wrap" aria-label="Product pagination">
+                <div class="product-pagination">
+
+                    {% if page_obj.has_previous %}
+                        <a
+                            class="product-page-arrow"
+                            href="?page={{ page_obj.previous_page_number }}#products"
+                            aria-label="Previous page"
+                        >&#8249;</a>
+                    {% else %}
+                        <span class="product-page-arrow disabled" aria-disabled="true">&#8249;</span>
+                    {% endif %}
+
+                    {% for page_number in page_range %}
+                        {% if page_number == "…" %}
+                            <span class="product-page-ellipsis">…</span>
+                        {% elif page_number == page_obj.number %}
+                            <span class="product-page-link active" aria-current="page">
+                                {{ page_number }}
+                            </span>
+                        {% else %}
+                            <a
+                                class="product-page-link"
+                                href="?page={{ page_number }}#products"
+                            >{{ page_number }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a
+                            class="product-page-arrow"
+                            href="?page={{ page_obj.next_page_number }}#products"
+                            aria-label="Next page"
+                        >&#8250;</a>
+                    {% else %}
+                        <span class="product-page-arrow disabled" aria-disabled="true">&#8250;</span>
+                    {% endif %}
+
+                </div>
+            </nav>
+        {% endif %}
 
 
 {% endblock %}

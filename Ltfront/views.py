@@ -12,18 +12,30 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import redirect,get_object_or_404
+from django.core.paginator import Paginator
 
 
 def home(request):
-    """Render the LuminaTech electronics storefront."""
     products = Product.objects.all()
-    categories = [label for _, label in Product.CATEGORY_CHOICES]
+
+    paginator = Paginator(products, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    categories = [
+        label for _, label in Product.CATEGORY_CHOICES
+    ]
 
     return render(
         request,
         "shop/home.html",
         {
-            "products": products,
+            "products": page_obj,
+            "page_obj": page_obj,
+            "page_range": paginator.get_elided_page_range(
+                number=page_obj.number,
+                on_each_side=1,
+                on_ends=1,
+            ),
             "categories": categories,
         },
     )
