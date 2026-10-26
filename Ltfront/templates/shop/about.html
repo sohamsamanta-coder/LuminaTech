@@ -1,24 +1,264 @@
+
 {% extends "shop/base.html" %}
+{% load static %}
 
-{% block title %}
-    About - LuminaTech
-{% endblock %}
+{% block title %}About Us - LuminaTech{% endblock %}
 
+{% block header_class %}hero-header{% endblock %}
 
 {% block content %}
+<main class="about-page">
 
-<section class="page-section">
+    <!-- HERO SECTION -->
+    <section class="about-hero">
 
-    <h2>About LuminaTech</h2>
+        <img
+            class="about-hero-image"
+            src="{% static 'shop/images/about-moon-gallery.png' %}"
+            alt="LuminaTech electronics showroom with a moon-inspired design"
+        >
 
-    <p>
-        Welcome to LuminaTech.
-    </p>
+        <div class="about-hero-overlay"></div>
 
-    <p>
-        Smart Technology. Better Living.
-    </p>
+        <div class="about-hero-content">
+            <p class="about-hero-eyebrow">
+                SMART TECHNOLOGY. BETTER LIVING.
+            </p>
 
-</section>
+            <h1>
+                Technology<br>in a new light<span>.</span>
+            </h1>
 
+            <p>
+                Discover a smarter way to explore laptops, smartphones,
+                audio devices, gaming products and everyday technology.
+            </p>
+
+            <a href="#our-story" class="about-hero-button">
+                Discover our story <span>↓</span>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- OUR STORY -->
+    <section class="about-story" id="our-story">
+
+        <div class="about-story-heading">
+            <p class="about-eyebrow">WHO WE ARE</p>
+
+            <h2>
+                Making technology<br>
+                feel more human<span>.</span>
+            </h2>
+        </div>
+
+        <div class="about-story-copy">
+
+            <p class="about-story-lead">
+                Making technology easier to discover, compare
+                and bring into your everyday life.
+            </p>
+
+            <p>
+                LuminaTech brings laptops, smartphones, headphones,
+                televisions, gaming devices and accessories together
+                in one convenient place.
+            </p>
+
+            <p>
+                We believe choosing technology should feel straightforward.
+                With useful product information, clear specifications and
+                an easy shopping experience, we help you find technology
+                that suits your needs.
+            </p>
+
+            <a href="{% url 'home-page' %}" class="about-text-link">
+                Explore the store <span>↗</span>
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- MEET OUR TEAM -->
+    <section class="about-team-section" id="our-team">
+
+        <div class="about-team-heading">
+
+            <p class="about-eyebrow">
+                THE PEOPLE BEHIND THE VISION
+            </p>
+
+            <h2>
+                Meet our team<span>.</span>
+            </h2>
+
+            <p>
+                Our team brings together project leadership, full-stack
+                and frontend development, and product research to create
+                a reliable, informative and user-focused electronics
+                shopping experience.
+            </p>
+
+        </div>
+
+
+        <div class="about-team-grid">
+
+            <!-- TEAM MEMBER 01 -->
+            <article class="about-team-member">
+
+                <div class="about-team-portrait portrait-one">
+                    <img
+                        src="{% static 'shop/images/m1.jpg' %}"
+                        alt="Portrait of Team Member 01"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="about-team-info">
+
+                    <p class="about-team-role">
+                        PROJECT LEAD &amp; FULL STACK DEVELOPER
+                    </p>
+
+                    <h3>Soham Samanta</h3>
+
+                    <p>
+                        Coordinates project planning and develops across
+                        the application stack, connecting the user interface
+                        with the underlying functionality.
+                    </p>
+
+                </div>
+
+            </article>
+
+
+            <!-- TEAM MEMBER 02 -->
+            <article class="about-team-member">
+
+                <div class="about-team-portrait portrait-two">
+                    <img
+                        src="{% static 'shop/images/team/member-02.jpg' %}"
+                        alt="Portrait of Team Member 02"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="about-team-info">
+
+                    <p class="about-team-role">
+                        FRONTEND DEVELOPER
+                    </p>
+
+                    <h3>Gourab Goswami</h3>
+
+                    <p>
+                        Builds the customer-facing interface, focusing
+                        on responsive layouts, visual clarity and smooth
+                        interactions across devices.
+                    </p>
+
+                </div>
+
+            </article>
+
+
+            <!-- TEAM MEMBER 03 -->
+            <article class="about-team-member">
+
+                <div class="about-team-portrait portrait-three">
+                    <img
+                        src="{% static 'shop/images/team/member-03.jpg' %}"
+                        alt="Portrait of Team Member 03"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="about-team-info">
+
+                    <p class="about-team-role">
+                        ASSOCIATE DEVELOPER &amp; DATA COLLECTOR
+                    </p>
+
+                    <h3>Team Member 03</h3>
+
+                    <p>
+                        Researches and organizes product information,
+                        helping keep the catalogue consistent, informative
+                        and useful for shoppers.
+                    </p>
+
+                </div>
+
+            </article>
+
+
+            <!-- TEAM MEMBER 04 -->
+            <article class="about-team-member">
+
+                <div class="about-team-portrait portrait-four">
+                    <img
+                        src="{% static 'shop/images/team/member-04.jpg' %}"
+                        alt="Portrait of Team Member 04"
+                        loading="lazy"
+                    >
+                </div>
+
+                <div class="about-team-info">
+
+                    <p class="about-team-role">
+                        ASSOCIATE DEVELOPER
+                    </p>
+
+                    <h3>Team Member 04</h3>
+
+                    <p>
+                        Supports implementation and testing, helping
+                        refine features and maintain a consistent,
+                        dependable user experience.
+                    </p>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <!-- SECOND IMAGE: BELOW THE TEAM -->
+    <section class="about-showcase">
+
+        <img
+            class="about-showcase-image"
+            src="{% static 'shop/images/about-workspace.jpg' %}"
+            alt="A modern technology workspace"
+            loading="lazy"
+        >
+
+        <div class="about-showcase-overlay"></div>
+
+        <div class="about-showcase-content">
+
+            <p>OUR VISION</p>
+
+            <h2>
+                Find what moves<br>
+                your world.
+            </h2>
+
+            <a href="{% url 'home-page' %}">
+                Explore LuminaTech <span>↗</span>
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
 {% endblock %}
