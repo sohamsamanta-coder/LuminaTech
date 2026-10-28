@@ -1,24 +1,267 @@
+
 {% extends "shop/base.html" %}
+{% load static %}
 
-{% block title %}
-    Contact - LuminaTech
-{% endblock %}
+{% block title %}Contact Us - LuminaTech{% endblock %}
 
+{% block header_class %}hero-header{% endblock %}
 
 {% block content %}
+<main class="contact-us-page">
 
-<section class="page-section">
+    <!-- HERO SECTION -->
+    <section class="contact-hero">
 
-    <h2>Contact LuminaTech</h2>
+        <div class="contact-hero-panel">
 
-    <p>
-        Email: support@luminatech.com
-    </p>
+            <div class="contact-hero-visual">
+                <svg
+                    class="contact-illustration"
+                    viewBox="0 0 560 400"
+                    role="img"
+                    aria-label="Illustration of a phone, clock and contact message"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <circle cx="275" cy="195" r="150" fill="#e8edff"/>
+                    <circle cx="145" cy="95" r="24" fill="#f0e8ff"/>
+                    <circle cx="422" cy="91" r="13" fill="#dbeafe"/>
+                    <circle cx="430" cy="309" r="25" fill="#e5e7ff"/>
+                    <circle cx="93" cy="294" r="17" fill="#dbeafe"/>
 
-    <p>
-        Phone: +91 00000 00000
-    </p>
+                    <!-- Clock -->
+                    <circle cx="190" cy="125" r="75" fill="#b6a1df"/>
+                    <circle cx="190" cy="125" r="60" fill="#ffffff" stroke="#202e5b" stroke-width="3"/>
+                    <path d="M190 89 V128 L218 145"
+                        fill="none" stroke="#202e5b" stroke-width="9"
+                        stroke-linecap="round" stroke-linejoin="round"/>
 
-</section>
+                    <!-- Phone -->
+                    <g transform="rotate(8 330 190)">
+                        <rect x="254" y="53" width="144" height="291" rx="24"
+                            fill="#1c2c59" stroke="#101c40" stroke-width="3"/>
+                        <rect x="263" y="69" width="126" height="255" rx="16" fill="#ffffff"/>
+                        <rect x="299" y="60" width="53" height="5" rx="3" fill="#8b9bd1"/>
+                        <circle cx="281" cy="61" r="3" fill="#8b9bd1"/>
 
+                        <!-- Message bubbles -->
+                        <rect x="277" y="92" width="83" height="34" rx="7" fill="#b59cde"/>
+                        <rect x="287" y="102" width="60" height="4" rx="2" fill="#ffffff" opacity=".9"/>
+                        <rect x="287" y="111" width="43" height="4" rx="2" fill="#ffffff" opacity=".9"/>
+
+                        <rect x="294" y="139" width="81" height="39" rx="7" fill="#dbe7ff"/>
+                        <rect x="304" y="150" width="58" height="4" rx="2" fill="#8295cf"/>
+                        <rect x="304" y="160" width="44" height="4" rx="2" fill="#8295cf"/>
+
+                        <rect x="277" y="191" width="93" height="35" rx="7" fill="#b59cde"/>
+                        <rect x="287" y="202" width="66" height="4" rx="2" fill="#ffffff"/>
+                        <rect x="287" y="212" width="48" height="4" rx="2" fill="#ffffff"/>
+
+                        <rect x="297" y="237" width="78" height="36" rx="7" fill="#dbe7ff"/>
+                        <rect x="307" y="249" width="54" height="4" rx="2" fill="#8295cf"/>
+                        <rect x="307" y="259" width="38" height="4" rx="2" fill="#8295cf"/>
+
+                        <rect x="277" y="284" width="98" height="24" rx="12" fill="#f2f4fb"/>
+                        <circle cx="290" cy="296" r="5" fill="#b59cde"/>
+                        <rect x="302" y="293" width="61" height="5" rx="2" fill="#cbd2e6"/>
+                    </g>
+
+                    <!-- Envelope and message -->
+                    <g transform="rotate(-7 204 274)">
+                        <rect x="94" y="226" width="185" height="120" rx="12"
+                            fill="#f7a8ba" stroke="#26345f" stroke-width="3"/>
+                        <rect x="116" y="207" width="139" height="83" rx="5"
+                            fill="#ffffff" stroke="#26345f" stroke-width="3"/>
+                        <path d="M116 223 H215 M116 240 H232 M116 257 H203"
+                            stroke="#a9b5d5" stroke-width="5" stroke-linecap="round"/>
+                        <path d="M95 238 L184 302 L278 238"
+                            fill="#ffbdc8" stroke="#26345f" stroke-width="3"
+                            stroke-linejoin="round"/>
+                        <path d="M95 338 L159 282 M278 338 L208 282"
+                            fill="none" stroke="#26345f" stroke-width="3"
+                            stroke-linecap="round"/>
+                    </g>
+
+                    <!-- Decorative dots -->
+                    <circle cx="443" cy="159" r="5" fill="#2563eb"/>
+                    <circle cx="112" cy="173" r="5" fill="#b59cde"/>
+                    <circle cx="375" cy="350" r="6" fill="#2563eb"/>
+                </svg>
+            </div>
+
+            <div class="contact-hero-copy">
+                <p class="contact-hero-eyebrow">
+                    WE'RE HERE TO HELP
+                </p>
+
+                <h1>
+                    Contact<br>
+                    us<span>.</span>
+                </h1>
+
+                <h2>Let's start a conversation.</h2>
+
+                <p class="contact-hero-description">
+                    Have a question about a product, its specifications,
+                    or your shopping experience? Reach out to us.
+                    We're happy to help you find the right technology.
+                </p>
+
+                <a href="#contact-details" class="contact-hero-button">
+                    Get in touch <span>↘</span>
+                </a>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CONTACT DETAILS AND FORM -->
+    <section class="contact-details-section" id="contact-details">
+
+        <div class="contact-details-grid">
+
+            <!-- CONTACT INFORMATION -->
+            <div class="contact-info-panel">
+
+                <div class="contact-panel-heading">
+                    <h2>Get in touch with us</h2>
+                    <p>Choose the best way to reach our team.</p>
+                </div>
+
+                <div class="contact-info-grid">
+
+                    <article class="contact-info-card">
+                        <div class="contact-info-icon">☎</div>
+                        <h3>Phone Number</h3>
+                        <p>+91 XXXXX XXXXX</p>
+                        <span>Speak with our support team</span>
+                    </article>
+
+                    <article class="contact-info-card">
+                        <div class="contact-info-icon">✉</div>
+                        <h3>Email</h3>
+                        <p>sohamyayy2005@gmail.com</p>
+                        <span>Send us your questions</span>
+                    </article>
+
+                    <article class="contact-info-card">
+                        <div class="contact-info-icon">⌖</div>
+                        <h3>Location</h3>
+                        <p>Bainchi, Purba Bardhaman, India</p>
+                        <span>Serving customers online</span>
+                    </article>
+
+                    <article class="contact-info-card">
+                        <div class="contact-info-icon">◷</div>
+                        <h3>Working Hours</h3>
+                        <p>Monday – Saturday</p>
+                        <span>11:00 AM – 05:00 PM</span>
+                    </article>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONTACT FORM -->
+            <div class="contact-form-panel">
+
+                <div class="contact-panel-heading">
+                    <h2>Send us a message</h2>
+                    <p>Fill out the form below and we'll get back to you.</p>
+                </div>
+
+                <form class="contact-form" method="post">
+                    {% csrf_token %}
+
+                    <div class="contact-fields-grid">
+
+                        <div class="contact-field">
+                            <label for="contactFirstName">
+                                First Name <span>*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="contactFirstName"
+                                name="first_name"
+                                placeholder="Enter your first name"
+                                autocomplete="given-name"
+                                required
+                            >
+                        </div>
+
+                        <div class="contact-field">
+                            <label for="contactLastName">
+                                Last Name
+                            </label>
+                            <input
+                                type="text"
+                                id="contactLastName"
+                                name="last_name"
+                                placeholder="Enter your last name"
+                                autocomplete="family-name"
+                            >
+                        </div>
+
+                        <div class="contact-field">
+                            <label for="contactPhone">
+                                Mobile Number <span>*</span>
+                            </label>
+                            <input
+                                type="tel"
+                                id="contactPhone"
+                                name="phone"
+                                placeholder="Enter your mobile number"
+                                autocomplete="tel"
+                                required
+                            >
+                        </div>
+
+                        <div class="contact-field">
+                            <label for="contactEmail">
+                                Email Address <span>*</span>
+                            </label>
+                            <input
+                                type="email"
+                                id="contactEmail"
+                                name="email"
+                                placeholder="Enter your email address"
+                                autocomplete="email"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <div class="contact-field contact-message-field">
+                        <label for="contactMessage">
+                            How can we help you? <span>*</span>
+                        </label>
+                        <textarea
+                            id="contactMessage"
+                            name="message"
+                            rows="5"
+                            placeholder="Write your message here..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <button class="contact-submit-button" type="submit">
+                        Submit Message <span>↗</span>
+                    </button>
+
+                    <p class="contact-form-note">
+                        Fields marked with * are required.
+                    </p>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
 {% endblock %}
