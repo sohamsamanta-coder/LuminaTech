@@ -1,0 +1,222 @@
+
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Your Cart - LuminaTech{% endblock %}
+
+{% block content %}
+<main class="cart-page">
+
+    <div class="cart-container">
+
+        <!-- BREADCRUMB -->
+        <nav class="cart-breadcrumb">
+            <a href="{% url 'home-page' %}">Home</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>Cart</span>
+        </nav>
+
+        <!-- PAGE HEADING -->
+        <div class="cart-page-heading">
+            <h1>YOUR <strong>CART</strong></h1>
+            <span id="cart-heading-count">0 items</span>
+        </div>
+
+        <!-- CART LAYOUT -->
+        <section class="cart-layout">
+
+            <!-- CART ITEMS -->
+            <div class="cart-items-panel">
+
+                <div class="cart-panel-title">
+                    <h2>Your Items</h2>
+                    <span id="cart-items-count">0 items</span>
+                </div>
+
+                <div id="cartItems" class="cart-items-list">
+                </div>
+
+                <!-- EMPTY CART -->
+                <div id="cartEmptyState" class="cart-empty" hidden>
+
+                    <div class="cart-empty-icon">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                    </div>
+
+                    <h3>Your cart is empty</h3>
+
+                    <p>
+                        Looks like you haven't added any products yet.
+                        Explore our collection and find something you love.
+                    </p>
+
+                    <a href="{% url 'home-page' %}" class="continue-shopping">
+                        Continue Shopping
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- ORDER SUMMARY -->
+            <aside class="cart-summary-panel">
+
+                <h2>Order Summary</h2>
+
+                <div class="summary-details">
+
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <strong id="cartSubtotal">₹0</strong>
+                    </div>
+
+                    <div class="summary-row discount-row" id="cartDiscountRow" hidden>
+                        <span>Discount</span>
+                        <strong id="cartDiscount">-₹0</strong>
+                    </div>
+
+                    <div class="summary-row">
+                        <span>Delivery Fee</span>
+                        <strong id="cartDelivery">₹0</strong>
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <strong id="cartTotal">₹0</strong>
+                    </div>
+
+                </div>
+
+
+                <!-- PROMO CODE -->
+                <div class="cart-promo">
+
+                    <div class="promo-input-wrap">
+                        <i class="fa-solid fa-tag"></i>
+
+                        <input
+                            type="text"
+                            id="promoCode"
+                            placeholder="Add promo code"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <button id="applyPromo" type="button">
+                        Apply
+                    </button>
+
+                </div>
+
+                <p id="promoMessage" class="promo-message">
+                    Demo code: LUMINA10
+                </p>
+
+
+                <!-- CHECKOUT -->
+                <button
+                    id="checkoutButton"
+                    class="checkout-button"
+                    type="button"
+                >
+                    Proceed to Checkout
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+
+
+                <!-- BENEFITS -->
+                <div class="cart-benefits">
+
+                    <div class="cart-benefit">
+                        <i class="fa-solid fa-truck-fast"></i>
+                        <strong>Shipping</strong>
+                        <span>Free over ₹10,000</span>
+                    </div>
+
+                    <div class="cart-benefit">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <strong>Secure</strong>
+                        <span>Secure checkout</span>
+                    </div>
+
+                    <div class="cart-benefit">
+                        <i class="fa-solid fa-box-open"></i>
+                        <strong>Easy Returns</strong>
+                        <span>Return policy</span>
+                    </div>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+
+        <!-- NEWSLETTER BANNER -->
+        <section class="cart-newsletter">
+
+            <div class="newsletter-moon">
+                <i class="fa-solid fa-moon"></i>
+                <i class="fa-solid fa-star"></i>
+            </div>
+
+            <div class="newsletter-copy">
+                <h2>
+                    STAY CONNECTED WITH<br>
+                    THE LATEST TECH
+                </h2>
+
+                <p>
+                    Discover new arrivals, exciting electronics
+                    and the latest technology trends.
+                </p>
+            </div>
+
+            <div class="newsletter-action">
+                <p>Explore more from LuminaTech.</p>
+
+                <a href="{% url 'home-page' %}">
+                    Continue Shopping
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- PRODUCT CATALOGUE FOR THE CART JAVASCRIPT -->
+    <div id="cartProductCatalog" hidden>
+
+        {% for product in products %}
+
+            <div
+                class="cart-product-source"
+                data-id="{{ product.id }}"
+                data-name="{{ product.name }}"
+                data-category="{{ product.category }}"
+                data-price="{{ product.price }}"
+            >
+
+                {% if product.uploaded_image %}
+                    <img src="{{ product.uploaded_image.url }}" alt="">
+                {% else %}
+                    <img src="{% static product.image %}" alt="">
+                {% endif %}
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</main>
+
+<script src="{% static 'shop/js/cart.js' %}" defer></script>
+
+{% endblock %}

@@ -46,7 +46,7 @@
         />
 
         <button id="topSearchBtn" type="button" aria-label="Search products">
-          🔍
+         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         </button>
       </div>
       <div class="user-links">
@@ -74,10 +74,15 @@
 
         {% endif %}
 
-        <a href="#" class="cart-link" id="cartLink" aria-label="Shopping cart">
-          🛒 Cart
+        <a href="{% url 'cart' %}" class="cart-link" id="cartLink" aria-label="Shopping cart">
 
-          <span id="cartCount"> 0 </span>
+            <span class="cart-icon-wrap">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span id="cartCount" class="cart-count-badge" hidden>0</span>
+            </span>
+
+            <span class="cart-link-label"></span>
+
         </a>
       </div>
     </header>
@@ -187,6 +192,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked@18.1.1/lib/marked.umd.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.16/dist/purify.min.js" defer></script>
+  <script src="https://kit.fontawesome.com/d84e03fdaf.js" crossorigin="anonymous"></script>
   <script src="{% static 'shop/js/app.js' %}" defer></script>
   </body>
 </html>

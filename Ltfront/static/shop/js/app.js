@@ -24,43 +24,90 @@ let cart = loadCart();
 
 // ================= CART STORAGE =================
 
+
+// ================= CART STORAGE =================
+
 function loadCart() {
-  try {
-    const savedCart = JSON.parse(
-      localStorage.getItem(CART_STORAGE_KEY) || "[]",
-    );
-    return new Set(Array.isArray(savedCart) ? savedCart.map(String) : []);
-  } catch (error) {
-    console.warn("Could not read the saved cart.", error);
-    return new Set();
-  }
+    try {
+        const savedCart = JSON.parse(
+            localStorage.getItem(CART_STORAGE_KEY) || "[]"
+        );
+
+        // Convert the older array format into product ID + quantity
+        if (Array.isArray(savedCart)) {
+            return new Map(
+                savedCart.map(id => [String(id), 1])
+            );
+        }
+
+        // Load the newer quantity format
+        if (savedCart && typeof savedCart === "object") {
+            return new Map(
+                Object.entries(savedCart)
+                    .map(([id, quantity]) => [
+                        String(id),
+                        Math.max(1, parseInt(quantity, 10) || 1)
+                    ])
+            );
+        }
+
+        return new Map();
+
+    } catch (error) {
+        console.warn("Could not read the saved cart.", error);
+        return new Map();
+    }
 }
+
 
 function saveCart() {
-  try {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify([...cart]));
-  } catch (error) {
-    console.warn("Could not save the cart.", error);
-  }
+    try {
+        localStorage.setItem(
+            CART_STORAGE_KEY,
+            JSON.stringify(Object.fromEntries(cart))
+        );
+    } catch (error) {
+        console.warn("Could not save the cart.", error);
+    }
 }
+
 
 function updateCartCount() {
-  if (cartCount) {
-    cartCount.textContent = String(cart.size);
-  }
+    if (!cartCount) {
+        return;
+    }
+
+    const totalQuantity = cart instanceof Map
+        ? [...cart.values()].reduce(
+            (total, quantity) => total + quantity,
+            0
+        )
+        : cart.size;
+
+    cartCount.textContent = String(totalQuantity);
+    cartCount.hidden = totalQuantity === 0;
 }
+
 
 function updateCartButtons() {
-  addButtons.forEach(function (button) {
-    const card = button.closest(".product-card");
-    const productId = card ? String(card.dataset.productId) : "";
-    const isAdded = cart.has(productId);
+    addButtons.forEach(function (button) {
+        const card = button.closest(".product-card");
+        const productId = String(
+            card?.dataset.productId || button.dataset.productId || ""
+        );
 
-    button.classList.toggle("added", isAdded);
-    button.textContent = isAdded ? "✓ Added to Cart" : "🛒 Add to Cart";
-    button.setAttribute("aria-pressed", String(isAdded));
-  });
+        const isAdded = cart.has(productId);
+
+        button.classList.toggle("added", isAdded);
+
+        button.innerHTML = isAdded
+            ? '<i class="fa-solid fa-check" aria-hidden="true"></i> Added to Cart'
+            : '<i class="fa-solid fa-plus" aria-hidden="true"></i> Add to Cart';
+
+        button.setAttribute("aria-pressed", String(isAdded));
+    });
 }
+
 
 // ================= PRODUCT FILTERING =================
 
@@ -213,30 +260,29 @@ window.selectCategory = selectCategory;
 
 // ================= ADD TO CART =================
 
+// ================= ADD TO CART =================
+
 addButtons.forEach(function (button) {
-  button.addEventListener("click", function () {
-    const card = button.closest(".product-card");
+    button.addEventListener("click", function () {
+        const card = button.closest(".product-card");
 
-    if (!card) {
-      return;
-    }
+        const productId = String(
+            card?.dataset.productId || button.dataset.productId || ""
+        );
 
-    const productId = String(card.dataset.productId || "");
+        if (!productId) {
+            return;
+        }
 
-    if (!productId) {
-      return;
-    }
+        // Increase quantity instead of removing the product
+        const currentQuantity = cart.get(productId) || 0;
 
-    if (cart.has(productId)) {
-      cart.delete(productId);
-    } else {
-      cart.add(productId);
-    }
+        cart.set(productId, currentQuantity + 1);
 
-    saveCart();
-    updateCartCount();
-    updateCartButtons();
-  });
+        saveCart();
+        updateCartCount();
+        updateCartButtons();
+    });
 });
 
 // ================= FRONT-END DEMO LINKS =================
@@ -256,14 +302,6 @@ if (registerLink) {
   registerLink.addEventListener("click", preventDemoLink);
 }
 
-if (cartLink) {
-  cartLink.addEventListener("click", function (event) {
-    event.preventDefault();
-    alert(
-      `Your cart currently contains ${cart.size} product${cart.size === 1 ? "" : "s"}.`,
-    );
-  });
-}
 
 // ================= INITIAL STATE =================
 

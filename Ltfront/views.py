@@ -50,6 +50,17 @@ def about(request):
 def contact(request):
     return render(request, "shop/contact.html")
 
+def cart(request):
+    products = Product.objects.all()
+
+    return render(
+        request,
+        "shop/cart.html",
+        {
+            "products": products,
+        },
+    )
+
 @require_POST
 def chatbot(request):
     user_message = request.POST.get("message", "").strip()
