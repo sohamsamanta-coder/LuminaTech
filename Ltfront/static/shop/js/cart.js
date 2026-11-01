@@ -2,79 +2,52 @@
 (function () {
     "use strict";
 
-    const CART_STORAGE_KEY = "luminaTechCart";
+    // ================= PAGE ELEMENTS =================
+
+    const CART_STATE_URL = "/cart/state/";
+    const CART_UPDATE_URL = "/cart/update/";
+    const CART_REMOVE_URL = "/cart/remove/";
 
     const cartItems = document.getElementById("cartItems");
     const emptyState = document.getElementById("cartEmptyState");
     const checkoutButton = document.getElementById("checkoutButton");
 
+    // Run this script only on the cart page.
     if (!cartItems) {
         return;
     }
 
-    const productSources = document.querySelectorAll(".cart-product-source");
-
-    const catalogue = new Map();
-
-    productSources.forEach(function (source) {
-        const image = source.querySelector("img");
-
-        catalogue.set(String(source.dataset.id), {
-            id: String(source.dataset.id),
-            name: source.dataset.name,
-            category: source.dataset.category,
-            price: Number(source.dataset.price),
-            image: image ? image.src : ""
-        });
-    });
-
-
-    // Read previously saved cart items
-    function loadCart() {
-        try {
-            const savedCart = JSON.parse(
-                localStorage.getItem(CART_STORAGE_KEY) || "[]"
-            );
-
-            if (Array.isArray(savedCart)) {
-                return new Map(
-                    savedCart.map(id => [String(id), 1])
-                );
-            }
-
-            if (savedCart && typeof savedCart === "object") {
-                return new Map(
-                    Object.entries(savedCart)
-                        .map(([id, quantity]) => [
-                            String(id),
-                            Math.max(1, parseInt(quantity, 10) || 1)
-                        ])
-                );
-            }
-
-            return new Map();
-
-        } catch (error) {
-            console.warn("Could not load cart.", error);
-            return new Map();
-        }
-    }
-
-
-    let cart = loadCart();
+    let cart = new Map();
+    let cartSubtotal = 0;
     let promoApplied = false;
+    let requestInProgress = false;
 
 
-    // Save cart quantities
-    function saveCart() {
-        localStorage.setItem(
-            CART_STORAGE_KEY,
-            JSON.stringify(Object.fromEntries(cart))
+    // ================= CSRF TOKEN =================
+
+    function getCsrfToken() {
+        const cookie = document.cookie.match(
+            /(?:^|;\s*)csrftoken=([^;]+)/
         );
+
+        if (cookie) {
+            return decodeURIComponent(cookie[1]);
+        }
+
+        const inputToken = document.querySelector(
+            'input[name="csrfmiddlewaretoken"]'
+        );
+
+        const metaToken = document.querySelector(
+            'meta[name="csrf-token"]'
+        );
+
+        return inputToken?.value || metaToken?.content || "";
     }
 
 
-    // Format prices in Indian Rupees
+    // ================= PRICE FORMATTING =================
+
     function formatPrice(amount) {
         return new Intl.NumberFormat("en-IN", {
             style: "currency",
@@ -84,30 +57,137 @@
     }
 
 
-    // Count all cart quantities
-    function getTotalQuantity() {
-        return [...cart.values()].reduce(
-            (total, quantity) => total + quantity,
-            0
+    // ================= CART STATE =================
+
+    function updateCartFromServer(data) {
+        const items = Array.isArray(data.items)
+            ? data.items
+            : [];
+
+        cart = new Map(
+            items.map(function (product) {
+                return [
+                    String(product.id),
+                    {
+                        ...product,
+                        price: Number(product.price) || 0,
+                        quantity: Math.max(
+                            1,
+                            parseInt(product.quantity, 10) || 1
+                        )
+                    }
+                ];
+            })
         );
+
+        cartSubtotal = Number(data.subtotal) || 0;
+
+        updateCartCount(data.cart_count);
+        renderCart();
     }
 
 
-    // Create one cart product row
-    function createCartItem(product, quantity) {
+    // ================= NAVBAR CART COUNT =================
+
+    function updateCartCount(count) {
+        const headerCount = document.getElementById("cartCount");
+
+        if (!headerCount) {
+            return;
+        }
+
+        const totalQuantity = parseInt(count, 10) || 0;
+
+        headerCount.textContent = String(totalQuantity);
+        headerCount.hidden = totalQuantity === 0;
+    }
+
+
+    // ================= LOAD CART FROM DJANGO =================
+
+    async function loadCart() {
+        try {
+            const response = await fetch(CART_STATE_URL, {
+                method: "GET",
+                credentials: "same-origin",
+                cache: "no-store"
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not load your cart.");
+            }
+
+            const data = await response.json();
+
+            updateCartFromServer(data);
+
+        } catch (error) {
+            console.error("Cart loading error:", error);
+            alert("Unable to load your cart. Please refresh the page.");
+        }
+    }
+
+
+    // ================= SEND CART REQUEST =================
+
+    async function sendCartRequest(url, payload) {
+        const csrfToken = getCsrfToken();
+
+        if (!csrfToken) {
+            throw new Error("CSRF token not found. Please refresh the page.");
+        }
+
+        const response = await fetch(url, {
+            method: "POST",
+            credentials: "same-origin",
+
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || "Unable to update your cart."
+            );
+        }
+
+        updateCartFromServer(data);
+
+        return data;
+    }
+
+
+    // ================= CREATE CART PRODUCT =================
+
+    function createCartItem(product) {
         const item = document.createElement("article");
+
         item.className = "cart-item";
         item.dataset.productId = product.id;
+
 
         // Product image
         const imageBox = document.createElement("div");
         imageBox.className = "cart-item-image";
 
         const image = document.createElement("img");
-        image.src = product.image;
+
         image.alt = product.name;
 
+        if (product.image) {
+            image.src = product.image;
+        } else {
+            imageBox.hidden = true;
+        }
+
         imageBox.appendChild(image);
+
 
         // Product information
         const information = document.createElement("div");
@@ -126,43 +206,74 @@
 
         const lineTotal = document.createElement("p");
         lineTotal.className = "cart-item-line-total";
-        lineTotal.textContent =
-            formatPrice(product.price * quantity) + " total";
 
-        information.append(category, name, price, lineTotal);
+        lineTotal.textContent =
+            formatPrice(product.price * product.quantity) + " total";
+
+        information.append(
+            category,
+            name,
+            price,
+            lineTotal
+        );
+
 
         // Quantity and remove controls
         const actions = document.createElement("div");
         actions.className = "cart-item-actions";
 
         const removeButton = document.createElement("button");
+
         removeButton.type = "button";
         removeButton.className = "cart-remove-button";
         removeButton.dataset.cartAction = "remove";
-        removeButton.setAttribute("aria-label", "Remove " + product.name);
+
+        removeButton.setAttribute(
+            "aria-label",
+            "Remove " + product.name
+        );
+
         removeButton.innerHTML =
             '<i class="fa-solid fa-trash-can"></i>';
 
+
+        // Quantity controls
         const quantityControl = document.createElement("div");
         quantityControl.className = "quantity-control";
 
         const decreaseButton = document.createElement("button");
+
         decreaseButton.type = "button";
         decreaseButton.dataset.cartAction = "decrease";
-        decreaseButton.setAttribute("aria-label", "Decrease quantity");
+
+        decreaseButton.setAttribute(
+            "aria-label",
+            "Decrease quantity"
+        );
+
         decreaseButton.innerHTML =
             '<i class="fa-solid fa-minus"></i>';
 
+
         const quantityNumber = document.createElement("span");
+
         quantityNumber.className = "quantity-number";
-        quantityNumber.textContent = quantity;
+        quantityNumber.textContent = product.quantity;
+
 
         const increaseButton = document.createElement("button");
+
         increaseButton.type = "button";
         increaseButton.dataset.cartAction = "increase";
-        increaseButton.setAttribute("aria-label", "Increase quantity");
+
+        increaseButton.setAttribute(
+            "aria-label",
+            "Increase quantity"
+        );
+
         increaseButton.innerHTML =
             '<i class="fa-solid fa-plus"></i>';
+
 
         quantityControl.append(
             decreaseButton,
@@ -170,102 +281,146 @@
             increaseButton
         );
 
-        actions.append(removeButton, quantityControl);
+        actions.append(
+            removeButton,
+            quantityControl
+        );
 
-        item.append(imageBox, information, actions);
+        item.append(
+            imageBox,
+            information,
+            actions
+        );
 
         return item;
     }
 
 
-    // Update the order summary
-    function updateSummary(subtotal) {
-        const deliveryFee =
-            subtotal === 0 || subtotal >= 10000 ? 0 : 99;
+    // ================= ORDER SUMMARY =================
 
+    function updateSummary() {
+        const subtotal = cartSubtotal;
+
+        // Demonstration delivery rule:
+        // Free delivery for orders of ₹10,000 or more.
+        const deliveryFee =
+            subtotal === 0 || subtotal >= 10000
+                ? 0
+                : 99;
+
+        // Demonstration coupon:
+        // LUMINA10 provides a 10% discount.
         const discount = promoApplied
             ? Math.round(subtotal * 0.10)
             : 0;
 
         const total = subtotal + deliveryFee - discount;
 
-        document.getElementById("cartSubtotal").textContent =
-            formatPrice(subtotal);
+        const subtotalElement =
+            document.getElementById("cartSubtotal");
 
-        document.getElementById("cartDelivery").textContent =
-            deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee);
+        const deliveryElement =
+            document.getElementById("cartDelivery");
 
-        document.getElementById("cartDiscount").textContent =
-            "-" + formatPrice(discount);
+        const discountElement =
+            document.getElementById("cartDiscount");
 
-        document.getElementById("cartTotal").textContent =
-            formatPrice(total);
+        const totalElement =
+            document.getElementById("cartTotal");
 
-        document.getElementById("cartDiscountRow").hidden =
-            !promoApplied || subtotal === 0;
+        const discountRow =
+            document.getElementById("cartDiscountRow");
+
+
+        if (subtotalElement) {
+            subtotalElement.textContent = formatPrice(subtotal);
+        }
+
+        if (deliveryElement) {
+            deliveryElement.textContent =
+                deliveryFee === 0
+                    ? "FREE"
+                    : formatPrice(deliveryFee);
+        }
+
+        if (discountElement) {
+            discountElement.textContent =
+                "-" + formatPrice(discount);
+        }
+
+        if (totalElement) {
+            totalElement.textContent = formatPrice(total);
+        }
+
+        if (discountRow) {
+            discountRow.hidden =
+                !promoApplied || subtotal === 0;
+        }
     }
 
 
-    // Render all cart products
+    // ================= RENDER CART =================
+
     function renderCart() {
         cartItems.replaceChildren();
 
-        let subtotal = 0;
+        let totalQuantity = 0;
 
-        // Remove products that no longer exist in the database
-        for (const productId of cart.keys()) {
-            if (!catalogue.has(productId)) {
-                cart.delete(productId);
-            }
-        }
-
-        cart.forEach(function (quantity, productId) {
-            const product = catalogue.get(productId);
-
-            if (!product) {
-                return;
-            }
-
-            subtotal += product.price * quantity;
+        cart.forEach(function (product) {
+            totalQuantity += product.quantity;
 
             cartItems.appendChild(
-                createCartItem(product, quantity)
+                createCartItem(product)
             );
         });
 
-        saveCart();
 
-        const itemCount = getTotalQuantity();
-        const itemLabel = itemCount === 1 ? "item" : "items";
+        // Update cart heading
+        const itemLabel =
+            totalQuantity === 1 ? "item" : "items";
 
-        document.getElementById("cart-heading-count").textContent =
-            itemCount + " " + itemLabel;
+        const headingCount =
+            document.getElementById("cart-heading-count");
 
-        document.getElementById("cart-items-count").textContent =
-            itemCount + " " + itemLabel;
+        const itemsCount =
+            document.getElementById("cart-items-count");
 
-        const headerCount = document.getElementById("cartCount");
-
-        if (headerCount) {
-            headerCount.textContent = itemCount;
-            headerCount.hidden = itemCount === 0;
+        if (headingCount) {
+            headingCount.textContent =
+                totalQuantity + " " + itemLabel;
         }
 
-        emptyState.hidden = itemCount !== 0;
+        if (itemsCount) {
+            itemsCount.textContent =
+                totalQuantity + " " + itemLabel;
+        }
 
-        updateSummary(subtotal);
 
+        // Show or hide empty cart message
+        if (emptyState) {
+            emptyState.hidden = totalQuantity !== 0;
+        }
+
+
+        // Update order summary
+        updateSummary();
+
+
+        // Disable checkout when the cart is empty.
         if (checkoutButton) {
-            checkoutButton.disabled = itemCount === 0;
+            checkoutButton.disabled = totalQuantity === 0;
         }
     }
 
 
-    // Handle quantity and remove buttons
-    cartItems.addEventListener("click", function (event) {
-        const button = event.target.closest("button[data-cart-action]");
+    // ================= QUANTITY AND REMOVE ACTIONS =================
 
-        if (!button) {
+    cartItems.addEventListener("click", async function (event) {
+        const button = event.target.closest(
+            "button[data-cart-action]"
+        );
+
+        if (!button || requestInProgress) {
             return;
         }
 
@@ -276,54 +431,122 @@
         }
 
         const productId = item.dataset.productId;
+
         const action = button.dataset.cartAction;
-        const currentQuantity = cart.get(productId) || 0;
+
+        const product = cart.get(productId);
+
+        if (!product) {
+            return;
+        }
+
+
+        let url;
+        let payload;
+
 
         if (action === "increase") {
-            cart.set(productId, currentQuantity + 1);
+            url = CART_UPDATE_URL;
+
+            payload = {
+                product_id: Number(productId),
+                quantity: product.quantity + 1
+            };
+
+        } else if (action === "decrease") {
+
+            // Minimum quantity is 1.
+            if (product.quantity <= 1) {
+                return;
+            }
+
+            url = CART_UPDATE_URL;
+
+            payload = {
+                product_id: Number(productId),
+                quantity: product.quantity - 1
+            };
+
+        } else if (action === "remove") {
+
+            url = CART_REMOVE_URL;
+
+            payload = {
+                product_id: Number(productId)
+            };
+
+        } else {
+            return;
         }
 
-        if (action === "decrease" && currentQuantity > 1) {
-            cart.set(productId, currentQuantity - 1);
-        }
 
-        if (action === "remove") {
-            cart.delete(productId);
-        }
+        requestInProgress = true;
 
-        renderCart();
+        // Prevent multiple cart requests at the same time.
+        cartItems.querySelectorAll("button").forEach(function (btn) {
+            btn.disabled = true;
+        });
+
+        try {
+            await sendCartRequest(url, payload);
+
+        } catch (error) {
+            console.error("Cart update error:", error);
+            alert(error.message);
+
+        } finally {
+            requestInProgress = false;
+
+            // Rebuild the cart using the latest available data.
+            renderCart();
+        }
     });
 
 
-    // Apply a demonstration coupon
+    // ================= PROMO CODE =================
+
     const applyPromo = document.getElementById("applyPromo");
     const promoInput = document.getElementById("promoCode");
     const promoMessage = document.getElementById("promoMessage");
 
     if (applyPromo) {
         applyPromo.addEventListener("click", function () {
-            const code = promoInput.value.trim().toUpperCase();
+
+            const code = promoInput
+                ? promoInput.value.trim().toUpperCase()
+                : "";
 
             if (code === "LUMINA10") {
                 promoApplied = true;
-                promoMessage.textContent =
-                    "LUMINA10 applied successfully. You saved 10%!";
-                promoMessage.classList.add("success");
+
+                if (promoMessage) {
+                    promoMessage.textContent =
+                        "LUMINA10 applied successfully. You saved 10%!";
+
+                    promoMessage.classList.add("success");
+                }
+
             } else {
                 promoApplied = false;
-                promoMessage.textContent =
-                    "Invalid code. Try LUMINA10.";
-                promoMessage.classList.remove("success");
+
+                if (promoMessage) {
+                    promoMessage.textContent =
+                        "Invalid code. Try LUMINA10.";
+
+                    promoMessage.classList.remove("success");
+                }
             }
 
-            renderCart();
+            updateSummary();
         });
     }
 
 
-    // Checkout placeholder
+    // ================= CHECKOUT PLACEHOLDER =================
+
     if (checkoutButton) {
         checkoutButton.addEventListener("click", function () {
+
             if (cart.size === 0) {
                 return;
             }
@@ -335,6 +558,12 @@
     }
 
 
-    renderCart();
+    // ================= INITIAL LOAD =================
+
+    if (checkoutButton) {
+        checkoutButton.disabled = true;
+    }
+
+    loadCart();
 
 })();

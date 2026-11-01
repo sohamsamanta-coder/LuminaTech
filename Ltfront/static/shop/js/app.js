@@ -19,79 +19,72 @@ const categoryLinks = Array.from(
 );
 const addButtons = Array.from(document.querySelectorAll(".add-button"));
 
-const CART_STORAGE_KEY = "luminaTechCart";
-let cart = loadCart();
 
-// ================= CART STORAGE =================
+// ================= DATABASE CART STORAGE =================
+
+const CART_STATE_URL = "/cart/state/";
+const CART_ADD_URL = "/cart/add/";
+
+let cart = new Map();
+let cartCountTotal = 0;
 
 
-// ================= CART STORAGE =================
+// Get Django CSRF token for secure POST requests
+function getCsrfToken() {
+    const cookie = document.cookie.match(
+        /(?:^|;\s*)csrftoken=([^;]+)/
+    );
 
-function loadCart() {
-    try {
-        const savedCart = JSON.parse(
-            localStorage.getItem(CART_STORAGE_KEY) || "[]"
-        );
-
-        // Convert the older array format into product ID + quantity
-        if (Array.isArray(savedCart)) {
-            return new Map(
-                savedCart.map(id => [String(id), 1])
-            );
-        }
-
-        // Load the newer quantity format
-        if (savedCart && typeof savedCart === "object") {
-            return new Map(
-                Object.entries(savedCart)
-                    .map(([id, quantity]) => [
-                        String(id),
-                        Math.max(1, parseInt(quantity, 10) || 1)
-                    ])
-            );
-        }
-
-        return new Map();
-
-    } catch (error) {
-        console.warn("Could not read the saved cart.", error);
-        return new Map();
+    if (cookie) {
+        return decodeURIComponent(cookie[1]);
     }
+
+    const inputToken = document.querySelector(
+        'input[name="csrfmiddlewaretoken"]'
+    );
+
+    const metaToken = document.querySelector(
+        'meta[name="csrf-token"]'
+    );
+
+    return inputToken?.value || metaToken?.content || "";
 }
 
 
-function saveCart() {
-    try {
-        localStorage.setItem(
-            CART_STORAGE_KEY,
-            JSON.stringify(Object.fromEntries(cart))
-        );
-    } catch (error) {
-        console.warn("Could not save the cart.", error);
-    }
+// Update the cart using data received from Django
+function updateCartFromServer(data) {
+    const items = Array.isArray(data.items) ? data.items : [];
+
+    cart = new Map(
+        items.map(item => [
+            String(item.id),
+            Math.max(1, parseInt(item.quantity, 10) || 1)
+        ])
+    );
+
+    cartCountTotal = parseInt(data.cart_count, 10) || 0;
+
+    updateCartCount();
+    updateCartButtons();
 }
 
 
+// Update navbar cart badge
 function updateCartCount() {
     if (!cartCount) {
         return;
     }
 
-    const totalQuantity = cart instanceof Map
-        ? [...cart.values()].reduce(
-            (total, quantity) => total + quantity,
-            0
-        )
-        : cart.size;
-
-    cartCount.textContent = String(totalQuantity);
-    cartCount.hidden = totalQuantity === 0;
+    cartCount.textContent = String(cartCountTotal);
+    cartCount.hidden = cartCountTotal === 0;
 }
 
 
+// Update Add to Cart button appearance
 function updateCartButtons() {
     addButtons.forEach(function (button) {
         const card = button.closest(".product-card");
+
         const productId = String(
             card?.dataset.productId || button.dataset.productId || ""
         );
@@ -107,6 +100,67 @@ function updateCartButtons() {
         button.setAttribute("aria-pressed", String(isAdded));
     });
 }
+
+
+// Fetch the current cart from Django
+async function loadCartFromServer() {
+    try {
+        const response = await fetch(CART_STATE_URL, {
+            method: "GET",
+            credentials: "same-origin",
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error("Could not load cart.");
+        }
+
+        const data = await response.json();
+
+        updateCartFromServer(data);
+
+    } catch (error) {
+        console.error("Cart loading error:", error);
+    }
+}
+
+
+// Send cart changes to Django
+async function sendCartRequest(url, payload) {
+    const csrfToken = getCsrfToken();
+
+    if (!csrfToken) {
+        throw new Error(
+            "Django CSRF token not found. Please check the CSRF setup."
+        );
+    }
+
+    const response = await fetch(url, {
+        method: "POST",
+
+        credentials: "same-origin",
+
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+        },
+
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Unable to update your cart."
+        );
+    }
+
+    updateCartFromServer(data);
+
+    return data;
+}
+
 
 
 // ================= PRODUCT FILTERING =================
@@ -258,49 +312,44 @@ function selectCategory(categoryName) {
 window.searchFromTop = searchFromTop;
 window.selectCategory = selectCategory;
 
-// ================= ADD TO CART =================
+
 
 // ================= ADD TO CART =================
 
 addButtons.forEach(function (button) {
-    button.addEventListener("click", function () {
+
+    button.addEventListener("click", async function () {
+
         const card = button.closest(".product-card");
 
         const productId = String(
             card?.dataset.productId || button.dataset.productId || ""
         );
 
-        if (!productId) {
+        if (!productId || button.disabled) {
             return;
         }
 
-        // Increase quantity instead of removing the product
-        const currentQuantity = cart.get(productId) || 0;
+        button.disabled = true;
 
-        cart.set(productId, currentQuantity + 1);
+        try {
+            await sendCartRequest(CART_ADD_URL, {
+                product_id: parseInt(productId, 10),
+                quantity: 1
+            });
 
-        saveCart();
-        updateCartCount();
-        updateCartButtons();
+        } catch (error) {
+            console.error("Add to Cart error:", error);
+            alert(error.message);
+
+        } finally {
+            button.disabled = false;
+            updateCartButtons();
+        }
+
     });
+
 });
-
-// ================= FRONT-END DEMO LINKS =================
-
-function preventDemoLink(event) {
-  event.preventDefault();
-  alert(
-    "Login and registration will be added to the Django authentication system next.",
-  );
-}
-
-if (loginLink) {
-  loginLink.addEventListener("click", preventDemoLink);
-}
-
-if (registerLink) {
-  registerLink.addEventListener("click", preventDemoLink);
-}
 
 
 // ================= INITIAL STATE =================
@@ -308,7 +357,7 @@ if (registerLink) {
 updateCartCount();
 updateCartButtons();
 filterProducts();
-
+loadCartFromServer();
 // LUMINA AI CHATBOT
 
 const chatForm = document.getElementById("chatForm");
