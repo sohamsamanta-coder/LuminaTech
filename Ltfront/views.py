@@ -14,7 +14,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.templatetags.static import static
 from django.views.decorators.http import require_GET, require_POST
-
+from django.core.mail import send_mail
 from google import genai
 
 from .models import Product, CartItem
@@ -532,6 +532,7 @@ def signup_view(request):
 
 # LOGIN
 
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect("home-page")
@@ -547,10 +548,44 @@ def login_view(request):
         )
 
         if user is not None:
+            # Log in the user
             login(request, user)
 
             # Merge the guest cart into the existing account.
             merge_guest_cart(request, user)
+
+            # Send successful login notification email
+            if user.email:
+                try:
+                    send_mail(
+                        subject="Successful login to LuminaTech",
+
+                        message=f"""
+Hi {user.username},
+
+We noticed a new login to your LuminaTech account.
+
+If this was you, no further action is needed — you're all set to go!
+
+Didn't log in?
+
+If you didn't initiate this request, please reset your password
+immediately to secure your account and contact our support team.
+
+Best regards,
+
+The LuminaTech Team
+                        """,
+
+                        from_email=None,
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                    )
+
+                    print(f"Login notification sent to {user.email}")
+
+                except Exception as e:
+                    print("Login notification email failed:", repr(e))
 
             messages.success(
                 request,
@@ -568,6 +603,7 @@ def login_view(request):
         request,
         "shop/login.html",
     )
+
 
 
 # LOGOUT
