@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import logging
 from decimal import Decimal
 from django.conf import settings
 from django.contrib import messages
@@ -9,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
 from django.core.validators import validate_email
 from django.db import transaction
@@ -22,7 +24,6 @@ from .models import CartItem, Order, OrderItem, Product
 
 # HOME PAGE
 def home(request):
-
     products = Product.objects.all()
     paginator = Paginator(products, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -43,34 +44,21 @@ def home(request):
             "page_range": paginator.get_elided_page_range(
 
                 number=page_obj.number,
-
                 on_each_side=1,
-
                 on_ends=1,
-
             ),
-
             "categories": categories,
-
         },
 
     )
 
-
-
-
-
 # PRODUCT DETAIL PAGE
-
-
 
 def product_detail(request, product_id):
 
     product = get_object_or_404(Product, id=product_id)
 
     return render(request, "shop/product_detail.html", {"product": product})
-
-
 
 @require_POST
 def buy_now(request, product_id):
@@ -100,25 +88,89 @@ def buy_now(request, product_id):
 
     return redirect("checkout")
 
-
-
-
-
 # ABOUT AND CONTACT PAGES
-
-
-
 def about(request):
 
     return render(request, "shop/about.html")
 
-
-
-
-
+@login_required
 def contact(request):
 
-    return render(request, "shop/contact.html")
+    user_email = (request.user.email or "").strip()
+
+    if request.method == "POST":
+
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        mobile_number = request.POST.get("mobile_number", "").strip()
+        feedback_message = request.POST.get("message", "").strip()
+
+        if not user_email:
+            messages.error(
+                request,
+                "Please add an email address to your account first."
+            )
+
+        elif not first_name or not mobile_number or not feedback_message:
+            messages.error(
+                request,
+                "Please fill in all required fields."
+            )
+
+        else:
+
+            subject = f"New Feedback from {first_name} {last_name}"
+
+            body = f"""
+New Customer Feedback - LuminaTech
+
+CUSTOMER DETAILS
+----------------
+First Name: {first_name}
+Last Name: {last_name}
+Mobile Number: {mobile_number}
+Email Address: {user_email}
+
+FEEDBACK MESSAGE
+----------------
+{feedback_message}
+"""
+
+            try:
+                email = EmailMessage(
+                    subject=subject,
+                    body=body,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to=[settings.FEEDBACK_RECEIVER_EMAIL],
+                    reply_to=[user_email],
+                )
+
+                email.send(fail_silently=False)
+
+                messages.success(
+                    request,
+                    "Thank you for contacting LuminaTech. Your message has been received by our support team. We'll get back to you as soon as possible."
+                )
+
+                return redirect(request.path)
+
+            except Exception:
+                logging.exception("LuminaTech feedback email failed.")
+
+                messages.error(
+                    request,
+                    "Unable to send your feedback. Please try again later."
+                )
+
+    return render(
+        request,
+        "shop/contact.html",
+        {
+            "account_email": user_email,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+        }
+    )
 
 
 

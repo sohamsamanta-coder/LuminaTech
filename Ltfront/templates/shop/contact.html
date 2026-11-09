@@ -172,72 +172,110 @@
                     <p>Fill out the form below and we'll get back to you.</p>
                 </div>
 
-                <form class="contact-form" method="post">
+                <!-- SUCCESS AND ERROR MESSAGES -->
+                {% if messages %}
+                    {% for message in messages %}
+
+                        <div class="contact-form-alert {{ message.tags }}">
+
+                            <div class="contact-alert-icon">
+                                {% if "success" in message.tags %}
+                                    ✓
+                                {% else %}
+                                    !
+                                {% endif %}
+                            </div>
+                            <div class="contact-alert-content">
+                                {% if "success" in message.tags %}
+                                    <strong>Message sent successfully!</strong>
+                                {% else %}
+                                    <strong>Unable to send your message</strong>
+                                {% endif %}
+                                <p>{{ message }}</p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form class="contact-form" method="POST">
                     {% csrf_token %}
 
                     <div class="contact-fields-grid">
 
+                        <!-- FIRST NAME -->
                         <div class="contact-field">
                             <label for="contactFirstName">
                                 First Name <span>*</span>
                             </label>
+
                             <input
                                 type="text"
                                 id="contactFirstName"
                                 name="first_name"
+                                value="{{ first_name }}"
                                 placeholder="Enter your first name"
                                 autocomplete="given-name"
                                 required
                             >
                         </div>
 
+                        <!-- LAST NAME -->
                         <div class="contact-field">
                             <label for="contactLastName">
                                 Last Name
                             </label>
+
                             <input
                                 type="text"
                                 id="contactLastName"
                                 name="last_name"
+                                value="{{ last_name }}"
                                 placeholder="Enter your last name"
                                 autocomplete="family-name"
                             >
                         </div>
 
+                        <!-- MOBILE NUMBER -->
                         <div class="contact-field">
                             <label for="contactPhone">
                                 Mobile Number <span>*</span>
                             </label>
+
                             <input
                                 type="tel"
                                 id="contactPhone"
-                                name="phone"
+                                name="mobile_number"
                                 placeholder="Enter your mobile number"
                                 autocomplete="tel"
                                 required
                             >
                         </div>
 
+                        <!-- REGISTERED EMAIL -->
                         <div class="contact-field">
                             <label for="contactEmail">
                                 Email Address <span>*</span>
                             </label>
+
                             <input
                                 type="email"
                                 id="contactEmail"
                                 name="email"
-                                placeholder="Enter your email address"
+                                value="{{ account_email }}"
                                 autocomplete="email"
+                                readonly
                                 required
                             >
                         </div>
 
                     </div>
 
+                    <!-- FEEDBACK MESSAGE -->
                     <div class="contact-field contact-message-field">
                         <label for="contactMessage">
                             How can we help you? <span>*</span>
                         </label>
+
                         <textarea
                             id="contactMessage"
                             name="message"
@@ -247,6 +285,7 @@
                         ></textarea>
                     </div>
 
+                    <!-- SUBMIT BUTTON -->
                     <button class="contact-submit-button" type="submit">
                         Submit Message <span>↗</span>
                     </button>

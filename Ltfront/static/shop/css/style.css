@@ -5689,3 +5689,84 @@ button {
     }
 
 }
+/* CONTACT FORM SUCCESS AND ERROR NOTIFICATIONS */
+
+.contact-form-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    padding: 16px 18px;
+    margin: 0 0 22px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    animation: contactAlertIn 0.35s ease;
+}
+
+.contact-alert-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.contact-alert-content {
+    flex: 1;
+}
+
+.contact-alert-content strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.contact-alert-content p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* SUCCESS MESSAGE */
+
+.contact-form-alert.success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.contact-form-alert.success .contact-alert-icon {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+/* ERROR MESSAGE */
+
+.contact-form-alert.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.contact-form-alert.error .contact-alert-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* ANIMATION */
+
+@keyframes contactAlertIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
