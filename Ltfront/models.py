@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.conf import settings
 
@@ -77,3 +78,129 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.product.name} ({self.quantity})"
+
+# ================= ORDER NUMBER GENERATOR =================
+
+def generate_order_number():
+    return f"LT-{uuid.uuid4().hex[:10].upper()}"
+
+
+# ================= ORDER MODEL =================
+
+class Order(models.Model):
+
+    PAYMENT_METHOD_CHOICES = [
+        ("demo_upi", "Demo UPI"),
+        ("demo_card", "Demo Card"),
+        ("cod", "Cash on Delivery"),
+    ]
+
+    PAYMENT_STATUS_CHOICES = [
+        ("demo_success", "Demo Payment Successful"),
+        ("pending", "Payment Pending"),
+    ]
+
+    ORDER_STATUS_CHOICES = [
+        ("confirmed", "Confirmed"),
+        ("processing", "Processing"),
+        ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    order_number = models.CharField(
+        max_length=20,
+        unique=True,
+        default=generate_order_number,
+        editable=False,
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
+
+    # Customer information
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+
+    # Delivery address
+    address_line1 = models.CharField(max_length=255)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=10)
+
+    # Order pricing
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2)
+    delivery_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2)
+
+    # Payment information
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+    )
+
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default="pending",
+    )
+
+    # Order tracking
+    status = models.CharField(
+        max_length=20,
+        choices=ORDER_STATUS_CHOICES,
+        default="confirmed",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.order_number
+
+
+# ================= ORDER ITEM MODEL =================
+
+class OrderItem(models.Model):
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="items",
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    # Store product information at the time of purchase
+    product_name = models.CharField(max_length=150)
+
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    quantity = models.PositiveIntegerField()
+
+    line_total = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    def __str__(self):
+        return f"{self.product_name} x {self.quantity}"

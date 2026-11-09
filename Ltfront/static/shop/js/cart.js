@@ -542,18 +542,17 @@
     }
 
 
-    // ================= CHECKOUT PLACEHOLDER =================
+// ================= CHECKOUT NAVIGATION =================
 
     if (checkoutButton) {
         checkoutButton.addEventListener("click", function () {
 
-            if (cart.size === 0) {
+            if (cart.size === 0 || requestInProgress) {
                 return;
             }
 
-            alert(
-                "Your cart is ready! Payment and checkout integration will be added next."
-            );
+            window.location.href = "/checkout/";
+
         });
     }
 

@@ -1,0 +1,337 @@
+
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Payment - LuminaTech{% endblock %}
+
+{% block content %}
+
+<section class="checkout-page">
+    <div class="checkout-container">
+
+        <!-- CHECKOUT BREADCRUMB -->
+        <nav class="checkout-breadcrumb">
+            <a href="{% url 'home-page' %}">Home</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <a href="{% url 'cart' %}">Cart</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <a href="{% url 'checkout' %}">Delivery</a>
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>Payment</span>
+        </nav>
+
+        <!-- PAGE HEADING -->
+        <div class="checkout-heading">
+            <p class="checkout-eyebrow">FINAL STEP</p>
+            <h1>COMPLETE YOUR <strong>PAYMENT</strong></h1>
+            <p>Select your preferred payment method to complete your order.</p>
+        </div>
+
+        <!-- CHECKOUT PROGRESS -->
+        <div class="checkout-progress">
+
+            <div class="checkout-step completed">
+                <span><i class="fa-solid fa-check"></i></span>
+                <p>Cart</p>
+            </div>
+
+            <div class="checkout-progress-line"></div>
+
+            <div class="checkout-step completed">
+                <span><i class="fa-solid fa-check"></i></span>
+                <p>Delivery</p>
+            </div>
+
+            <div class="checkout-progress-line"></div>
+
+            <div class="checkout-step active">
+                <span>3</span>
+                <p>Payment</p>
+            </div>
+
+        </div>
+
+        <div class="checkout-layout">
+
+            <!-- PAYMENT OPTIONS -->
+            <div class="checkout-form-panel">
+
+                <div class="checkout-panel-heading">
+
+                    <div class="checkout-heading-icon">
+                        <i class="fa-solid fa-credit-card"></i>
+                    </div>
+
+                    <div>
+                        <h2>Payment Method</h2>
+                        <p>Choose how you would like to pay for your order.</p>
+                    </div>
+
+                </div>
+
+                {% if payment_error %}
+                    <div class="checkout-errors">
+                        <p>
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            {{ payment_error }}
+                        </p>
+                    </div>
+                {% endif %}
+
+                <form method="POST" action="{% url 'payment' %}">
+
+                    {% csrf_token %}
+
+                    <div class="payment-options">
+
+                        <!-- UPI PAYMENT -->
+                        <label class="payment-option">
+
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="demo_upi"
+                                required
+                                checked
+                            >
+
+                            <span class="payment-option-icon">
+                                <i class="fa-solid fa-mobile-screen-button"></i>
+                            </span>
+
+                            <span class="payment-option-info">
+                                <strong>UPI Payment</strong>
+                                <small>
+                                    Online payment processing is currently unavailable
+                                </small>
+                            </span>
+
+                            <span class="payment-option-badge">Popular</span>
+
+                        </label>
+
+                        <!-- CARD PAYMENT -->
+                        <label class="payment-option">
+
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="demo_card"
+                            >
+
+                            <span class="payment-option-icon">
+                                <i class="fa-solid fa-credit-card"></i>
+                            </span>
+
+                            <span class="payment-option-info">
+                                <strong>Credit / Debit Card</strong>
+                                <small>
+                                    Online card payment is currently unavailable
+                                </small>
+                            </span>
+
+                        </label>
+
+                        <!-- CASH ON DELIVERY -->
+                        <label class="payment-option">
+
+                            <input
+                                type="radio"
+                                name="payment_method"
+                                value="cod"
+                            >
+
+                            <span class="payment-option-icon">
+                                <i class="fa-solid fa-truck-fast"></i>
+                            </span>
+
+                            <span class="payment-option-info">
+                                <strong>Cash on Delivery</strong>
+                                <small>Pay when your order is delivered</small>
+                            </span>
+
+                        </label>
+
+                    </div>
+
+                    <!-- PAYMENT INFORMATION -->
+                    <div class="demo-payment-notice">
+                        <i class="fa-solid fa-shield-halved"></i>
+
+                        <p>
+                            Online payment processing is not currently available.
+                            No money will be charged through this checkout.
+                            Please do not enter any banking or card credentials.
+                        </p>
+                    </div>
+
+                    <!-- FORM ACTIONS -->
+                    <div class="checkout-form-actions">
+
+                        <a href="{% url 'checkout' %}" class="checkout-back">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            Back to Delivery
+                        </a>
+
+                        <button
+                            type="submit"
+                            class="checkout-continue"
+                        >
+                            Place Order
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- ORDER SUMMARY -->
+            <aside class="checkout-summary">
+
+                <div class="checkout-summary-heading">
+                    <h2>Order Summary</h2>
+                    <span>{{ items|length }} products</span>
+                </div>
+
+                <!-- ORDERED PRODUCTS -->
+                <div class="checkout-summary-products">
+
+                    {% for item in items %}
+
+                        <div class="checkout-summary-product">
+
+                            <div class="checkout-product-image">
+
+                                {% if item.image %}
+                                    <img
+                                        src="{{ item.image }}"
+                                        alt="{{ item.name }}"
+                                    >
+                                {% else %}
+                                    <i class="fa-solid fa-box"></i>
+                                {% endif %}
+
+                                <span>{{ item.quantity }}</span>
+
+                            </div>
+
+                            <div class="checkout-product-info">
+                                <h3>{{ item.name }}</h3>
+                                <p>{{ item.category }}</p>
+                                <strong>
+                                    ₹{{ item.subtotal|floatformat:2 }}
+                                </strong>
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p>No products found in this order.</p>
+
+                    {% endfor %}
+
+                </div>
+
+                <div class="checkout-summary-divider"></div>
+
+                <!-- SUBTOTAL -->
+                <div class="checkout-price-row">
+                    <span>Subtotal</span>
+                    <strong>
+                        ₹{{ subtotal|floatformat:2 }}
+                    </strong>
+                </div>
+
+                <!-- DELIVERY FEE -->
+                <div class="checkout-price-row">
+                    <span>Delivery Fee</span>
+
+                    <strong>
+                        {% if delivery_fee == 0 %}
+                            FREE
+                        {% else %}
+                            ₹{{ delivery_fee|floatformat:2 }}
+                        {% endif %}
+                    </strong>
+                </div>
+
+                <!-- COUPON DISCOUNT -->
+                {% if discount > 0 %}
+
+                    <div class="checkout-price-row">
+
+                        <span>
+                            <i class="fa-solid fa-tag"></i>
+                            Discount
+                            {% if coupon_code %}
+                                ({{ coupon_code }})
+                            {% endif %}
+                        </span>
+
+                        <strong style="color: #16a34a;">
+                            -₹{{ discount|floatformat:2 }}
+                        </strong>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="checkout-price-row">
+                        <span>Discount</span>
+                        <strong>₹0.00</strong>
+                    </div>
+
+                {% endif %}
+
+                <div class="checkout-summary-divider"></div>
+
+                <!-- FINAL TOTAL -->
+                <div class="checkout-price-row checkout-grand-total">
+                    <span>Total Amount</span>
+
+                    <strong>
+                        ₹{{ total|floatformat:2 }}
+                    </strong>
+                </div>
+
+                <!-- COUPON SUCCESS MESSAGE -->
+                {% if discount > 0 %}
+
+                    <div class="checkout-coupon-applied">
+
+                        <span>
+                            <i class="fa-solid fa-circle-check"></i>
+                            {{ coupon_code }} successfully applied
+                        </span>
+
+                        <small>
+                            You saved ₹{{ discount|floatformat:2 }} on this order.
+                        </small>
+
+                    </div>
+
+                {% endif %}
+
+                <!-- ORDER SECURITY NOTICE -->
+                <div class="demo-payment-notice">
+
+                    <i class="fa-solid fa-shield-halved"></i>
+
+                    <p>
+                        Your order details will be securely recorded
+                        in the LuminaTech system.
+                    </p>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

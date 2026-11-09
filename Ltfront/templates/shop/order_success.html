@@ -1,0 +1,158 @@
+
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Order Confirmed - LuminaTech{% endblock %}
+
+{% block content %}
+
+<section class="order-success-page">
+
+    <div class="order-success-card">
+
+        <!-- SUCCESS ICON -->
+        <div class="order-success-icon">
+            <i class="fa-solid fa-check"></i>
+        </div>
+
+        <p class="order-success-eyebrow">LUMINATECH ORDER CONFIRMATION</p>
+
+        <h1>Thank You for Your Order!</h1>
+
+        <p class="order-success-description">
+            Your order has been successfully placed.
+            We appreciate your trust in LuminaTech.
+            Your order details are provided below.
+        </p>
+
+        <!-- ORDER NUMBER -->
+        <div class="order-number-box">
+            <span>ORDER NUMBER</span>
+            <strong>{{ order.order_number }}</strong>
+        </div>
+
+        <!-- ORDER STATUS -->
+        <div class="order-status-box">
+
+            <div>
+                <span>Order Status</span>
+                <strong>{{ order.get_status_display }}</strong>
+            </div>
+
+            <div>
+                <span>Payment Method</span>
+                <strong>{{ order.get_payment_method_display }}</strong>
+            </div>
+
+            <div>
+                <span>Payment Status</span>
+                <strong>{{ order.get_payment_status_display }}</strong>
+            </div>
+
+            <div>
+                <span>Order Date</span>
+                <strong>{{ order.created_at|date:"d M Y, h:i A" }}</strong>
+            </div>
+
+        </div>
+
+        <!-- ORDER SUMMARY -->
+        <h2>Order Summary</h2>
+
+        <div class="success-order-items">
+
+            {% for item in items %}
+
+                <div class="success-order-item">
+
+                    <div>
+                        <strong>{{ item.product_name }}</strong>
+                        <p>Quantity: {{ item.quantity }}</p>
+                    </div>
+
+                    <strong>₹{{ item.line_total|floatformat:2 }}</strong>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- PRICE DETAILS -->
+        <div class="success-total">
+            <span>Subtotal</span>
+            <strong>₹{{ order.subtotal|floatformat:2 }}</strong>
+        </div>
+
+        <div class="success-total">
+            <span>Delivery Fee</span>
+
+            <strong>
+                {% if order.delivery_fee == 0 %}
+                    FREE
+                {% else %}
+                    ₹{{ order.delivery_fee|floatformat:2 }}
+                {% endif %}
+            </strong>
+        </div>
+
+        <div class="success-total final-total">
+            <span>Total Amount</span>
+            <strong>₹{{ order.total|floatformat:2 }}</strong>
+        </div>
+
+        <!-- PAYMENT INFORMATION -->
+        {% if order.payment_method == "cod" %}
+
+            <div class="success-payment-note">
+                <i class="fa-solid fa-truck-fast"></i>
+                Your order is confirmed. Please keep the payment amount
+                ready and pay when your order is delivered.
+            </div>
+
+        {% else %}
+
+            <div class="success-payment-note">
+                <i class="fa-solid fa-circle-info"></i>
+                Your order has been recorded successfully.
+                Online payment processing is currently unavailable.
+                No money has been charged.
+            </div>
+
+        {% endif %}
+
+        <!-- DELIVERY ADDRESS -->
+        <div class="order-delivery-details">
+
+            <h2>Delivery Address</h2>
+
+            <strong>{{ order.full_name }}</strong>
+
+            <p>{{ order.address_line1 }}</p>
+
+            {% if order.address_line2 %}
+                <p>{{ order.address_line2 }}</p>
+            {% endif %}
+
+            <p>
+                {{ order.city }},
+                {{ order.state }} -
+                {{ order.pincode }}
+            </p>
+
+            <p>{{ order.phone }}</p>
+            <p>{{ order.email }}</p>
+
+        </div>
+
+        <!-- CONTINUE SHOPPING -->
+        <a href="{% url 'home-page' %}" class="order-success-button">
+            Continue Shopping
+            <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+    </div>
+
+</section>
+
+{% endblock %}

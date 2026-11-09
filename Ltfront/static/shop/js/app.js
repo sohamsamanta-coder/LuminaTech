@@ -465,3 +465,45 @@ document.querySelectorAll(".product-card").forEach((card) => {
     }
   });
 });
+// ================= MOBILE HAMBURGER MENU =================
+
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const userLinks = document.getElementById("userLinks");
+
+if (mobileMenuBtn && userLinks) {
+
+    mobileMenuBtn.addEventListener("click", function () {
+
+        const isOpen = userLinks.classList.toggle("is-open");
+
+        mobileMenuBtn.classList.toggle("is-open", isOpen);
+
+        mobileMenuBtn.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
+
+        mobileMenuBtn.setAttribute(
+            "aria-label",
+            isOpen ? "Close navigation menu" : "Open navigation menu"
+        );
+    });
+
+    // Close menu after clicking a navigation link
+    userLinks.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+            userLinks.classList.remove("is-open");
+            mobileMenuBtn.classList.remove("is-open");
+            mobileMenuBtn.setAttribute("aria-expanded", "false");
+        });
+    });
+
+    // Close menu using Escape
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            userLinks.classList.remove("is-open");
+            mobileMenuBtn.classList.remove("is-open");
+            mobileMenuBtn.setAttribute("aria-expanded", "false");
+        }
+    });
+}

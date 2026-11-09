@@ -1,0 +1,488 @@
+
+{% extends "shop/base.html" %}
+{% load static %}
+
+{% block title %}Checkout - LuminaTech{% endblock %}
+
+{% block content %}
+
+<section class="checkout-page">
+
+    <div class="checkout-container">
+
+        <!-- BREADCRUMB -->
+        <nav class="checkout-breadcrumb">
+            <a href="{% url 'home-page' %}">Home</a>
+            <i class="fa-solid fa-chevron-right"></i>
+
+            {% if is_buy_now %}
+                <span>Buy Now</span>
+            {% else %}
+                <a href="{% url 'cart' %}">Cart</a>
+            {% endif %}
+
+            <i class="fa-solid fa-chevron-right"></i>
+            <span>Checkout</span>
+        </nav>
+
+        <!-- DJANGO MESSAGES -->
+        {% if messages %}
+            <div class="checkout-messages">
+                {% for message in messages %}
+                    <p class="checkout-message {{ message.tags }}">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- HEADING -->
+        <div class="checkout-heading">
+            <p class="checkout-eyebrow">ALMOST THERE</p>
+            <h1>COMPLETE YOUR <strong>ORDER</strong></h1>
+            <p>Enter your delivery details to continue.</p>
+        </div>
+
+        <!-- CHECKOUT PROGRESS -->
+        <div class="checkout-progress">
+
+            <div class="checkout-step completed">
+                <span><i class="fa-solid fa-check"></i></span>
+                <p>
+                    {% if is_buy_now %}
+                        Product
+                    {% else %}
+                        Cart
+                    {% endif %}
+                </p>
+            </div>
+
+            <div class="checkout-progress-line"></div>
+
+            <div class="checkout-step active">
+                <span>2</span>
+                <p>Delivery</p>
+            </div>
+
+            <div class="checkout-progress-line"></div>
+
+            <div class="checkout-step">
+                <span>3</span>
+                <p>Payment</p>
+            </div>
+
+        </div>
+
+        <div class="checkout-layout">
+
+            <!-- CUSTOMER DETAILS -->
+            <div class="checkout-form-panel">
+
+                <div class="checkout-panel-heading">
+
+                    <div class="checkout-heading-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+
+                    <div>
+                        <h2>Delivery Information</h2>
+                        <p>Where should we deliver your order?</p>
+                    </div>
+
+                </div>
+
+                <!-- VALIDATION ERRORS -->
+                {% if errors %}
+                    <div class="checkout-errors">
+                        {% for error in errors %}
+                            <p>
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                {{ error }}
+                            </p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- DELIVERY FORM -->
+                <form method="POST" action="{% url 'checkout' %}">
+
+                    {% csrf_token %}
+
+                    <div class="checkout-fields">
+
+                        <div class="checkout-field full-width">
+                            <label for="full_name">Full Name *</label>
+
+                            <input
+                                type="text"
+                                id="full_name"
+                                name="full_name"
+                                value="{{ form_data.full_name }}"
+                                placeholder="Enter your full name"
+                                maxlength="150"
+                                autocomplete="name"
+                                required
+                            >
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="email">Email Address *</label>
+
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value="{{ form_data.email }}"
+                                placeholder="Enter your email"
+                                maxlength="254"
+                                autocomplete="email"
+                                {% if email_locked %}readonly{% endif %}
+                                required
+                            >
+
+                            {% if email_locked %}
+                                <small class="checkout-email-note">
+                                    <i class="fa-solid fa-lock"></i>
+                                    Using your registered account email.
+                                </small>
+                            {% endif %}
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="phone">Mobile Number *</label>
+
+                            <input
+                                type="tel"
+                                id="phone"
+                                name="phone"
+                                value="{{ form_data.phone }}"
+                                placeholder="10-digit mobile number"
+                                maxlength="16"
+                                autocomplete="tel"
+                                required
+                            >
+                        </div>
+
+                        <div class="checkout-field full-width">
+                            <label for="address_line1">Address Line 1 *</label>
+
+                            <input
+                                type="text"
+                                id="address_line1"
+                                name="address_line1"
+                                value="{{ form_data.address_line1 }}"
+                                placeholder="House number, street, area"
+                                maxlength="255"
+                                autocomplete="address-line1"
+                                required
+                            >
+                        </div>
+
+                        <div class="checkout-field full-width">
+                            <label for="address_line2">
+                                Address Line 2
+                                <span>(Optional)</span>
+                            </label>
+
+                            <input
+                                type="text"
+                                id="address_line2"
+                                name="address_line2"
+                                value="{{ form_data.address_line2 }}"
+                                placeholder="Landmark, apartment, etc."
+                                maxlength="255"
+                                autocomplete="address-line2"
+                            >
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="city">City *</label>
+
+                            <input
+                                type="text"
+                                id="city"
+                                name="city"
+                                value="{{ form_data.city }}"
+                                placeholder="Enter city"
+                                maxlength="100"
+                                autocomplete="address-level2"
+                                required
+                            >
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="state">State *</label>
+
+                            <input
+                                type="text"
+                                id="state"
+                                name="state"
+                                value="{{ form_data.state }}"
+                                placeholder="Enter state"
+                                maxlength="100"
+                                autocomplete="address-level1"
+                                required
+                            >
+                        </div>
+
+                        <div class="checkout-field">
+                            <label for="pincode">PIN Code *</label>
+
+                            <input
+                                type="text"
+                                id="pincode"
+                                name="pincode"
+                                value="{{ form_data.pincode }}"
+                                placeholder="6-digit PIN code"
+                                maxlength="6"
+                                inputmode="numeric"
+                                autocomplete="postal-code"
+                                required
+                            >
+                        </div>
+
+                    </div>
+
+                    <!-- FORM ACTIONS -->
+                    <div class="checkout-form-actions">
+
+                        {% if is_buy_now %}
+                            <a href="{% url 'home-page' %}" class="checkout-back">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                Back to Store
+                            </a>
+                        {% else %}
+                            <a href="{% url 'cart' %}" class="checkout-back">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                Back to Cart
+                            </a>
+                        {% endif %}
+
+                        <button type="submit" class="checkout-continue">
+                            Continue to Payment
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- ORDER SUMMARY -->
+            <aside class="checkout-summary">
+
+                <div class="checkout-summary-heading">
+                    <h2>Order Summary</h2>
+
+                    <span>
+                        {{ items|length }} product{{ items|length|pluralize }}
+                    </span>
+                </div>
+
+                <!-- DIRECT PURCHASE MESSAGE -->
+                {% if is_buy_now %}
+                    <div class="checkout-delivery-note">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>You're purchasing this product directly. Your shopping cart remains unchanged.</span>
+                    </div>
+                {% endif %}
+
+                <!-- ORDER PRODUCTS -->
+                <div class="checkout-summary-products">
+
+                    {% for item in items %}
+
+                        <div class="checkout-summary-product">
+
+                            <div class="checkout-product-image">
+
+                                {% if item.image %}
+                                    <img
+                                        src="{{ item.image }}"
+                                        alt="{{ item.name }}"
+                                    >
+                                {% else %}
+                                    <i class="fa-solid fa-box"></i>
+                                {% endif %}
+
+                                <span>{{ item.quantity }}</span>
+
+                            </div>
+
+                            <div class="checkout-product-info">
+
+                                <h3>{{ item.name }}</h3>
+                                <p>{{ item.category }}</p>
+
+                                <strong>
+                                    ₹{{ item.subtotal|floatformat:2 }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+
+                        <p>Your order currently has no products.</p>
+
+                    {% endfor %}
+
+                </div>
+
+                <div class="checkout-summary-divider"></div>
+
+                <!-- COUPON SECTION -->
+                <div class="checkout-coupon">
+
+                    <h3>
+                        <i class="fa-solid fa-ticket"></i>
+                        Apply Coupon
+                    </h3>
+
+                    {% if coupon_code %}
+
+                        <div class="checkout-coupon-applied">
+
+                            <span>
+                                <i class="fa-solid fa-circle-check"></i>
+                                {{ coupon_code }} applied
+                            </span>
+
+                            <small>
+                                You saved ₹{{ discount|floatformat:2 }}
+                            </small>
+
+                        </div>
+
+                    {% else %}
+
+                        <form
+                            method="POST"
+                            action="{% url 'checkout' %}"
+                            class="checkout-coupon-form"
+                        >
+
+                            {% csrf_token %}
+
+                            <div class="checkout-coupon-input">
+
+                                <input
+                                    type="text"
+                                    name="coupon_code"
+                                    placeholder="Enter coupon code"
+                                    maxlength="30"
+                                    autocomplete="off"
+                                    aria-label="Coupon code"
+                                >
+
+                                <button
+                                    type="submit"
+                                    name="apply_coupon"
+                                    value="1"
+                                >
+                                    Apply
+                                </button>
+
+                            </div>
+
+                            <small>
+                                Use LUMINA10 for 10% off orders of ₹1,000 or more.
+                            </small>
+
+                        </form>
+
+                    {% endif %}
+
+                </div>
+
+                <div class="checkout-summary-divider"></div>
+
+                <!-- PRICE DETAILS -->
+                <div class="checkout-price-row">
+
+                    <span>Subtotal</span>
+
+                    <strong>
+                        ₹{{ subtotal|floatformat:2 }}
+                    </strong>
+
+                </div>
+
+                <div class="checkout-price-row">
+
+                    <span>Delivery Fee</span>
+
+                    <strong>
+                        {% if delivery_fee == 0 %}
+                            FREE
+                        {% else %}
+                            ₹{{ delivery_fee|floatformat:2 }}
+                        {% endif %}
+                    </strong>
+
+                </div>
+
+                <!-- DISCOUNT -->
+                <div class="checkout-price-row">
+
+                    <span>
+                        Discount{% if coupon_code %} ({{ coupon_code }}){% endif %}
+                    </span>
+
+                    <strong>
+                        {% if discount > 0 %}
+                            -₹{{ discount|floatformat:2 }}
+                        {% else %}
+                            ₹0.00
+                        {% endif %}
+                    </strong>
+
+                </div>
+
+                <div class="checkout-summary-divider"></div>
+
+                <!-- FINAL TOTAL -->
+                <div class="checkout-price-row checkout-grand-total">
+
+                    <span>Total Amount</span>
+
+                    <strong>
+                        ₹{{ total|floatformat:2 }}
+                    </strong>
+
+                </div>
+
+                <!-- SECURITY NOTE -->
+                <div class="checkout-security-note">
+
+                    <i class="fa-solid fa-shield-halved"></i>
+
+                    <div>
+                        <strong>Secure Checkout</strong>
+                        <p>Your delivery information is handled securely.</p>
+                    </div>
+
+                </div>
+
+                <!-- DELIVERY NOTE -->
+                <div class="checkout-delivery-note">
+
+                    <i class="fa-solid fa-truck-fast"></i>
+
+                    <span>
+                        Free delivery on orders above ₹10,000.
+                    </span>
+
+                </div>
+
+            </aside>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -8,41 +8,53 @@
 {% block content %}
 
 <section class="product-detail-page">
+
     <a href="{% url 'home-page' %}" class="back-to-store">
         ← Back to LuminaTech
     </a>
 
     <div class="product-detail-layout">
+
+        <!-- PRODUCT GALLERY -->
         <div class="product-gallery">
+
             <div class="product-main-image">
+
                 {% if product.uploaded_image %}
                     <img
                         src="{{ product.uploaded_image.url }}"
                         alt="{{ product.name }}"
                     >
-                {% else %}
+                {% elif product.image %}
                     <img
                         src="{% static product.image %}"
                         alt="{{ product.name }}"
                     >
                 {% endif %}
+
             </div>
 
             <div class="product-thumbnail">
+
                 {% if product.uploaded_image %}
                     <img
                         src="{{ product.uploaded_image.url }}"
                         alt="{{ product.name }}"
                     >
-                {% else %}
+                {% elif product.image %}
                     <img
                         src="{% static product.image %}"
                         alt="{{ product.name }}"
                     >
                 {% endif %}
+
             </div>
+
         </div>
+
+        <!-- PRODUCT INFORMATION -->
         <div class="product-detail-info">
+
             <p class="detail-category">
                 {{ product.category }}
             </p>
@@ -63,27 +75,48 @@
                 </p>
             {% endif %}
 
+            <!-- PRODUCT ACTIONS -->
             <div class="detail-actions">
+
+                <!-- ADD TO CART -->
                 <button
                     class="detail-add-button add-button"
                     type="button"
                     data-product-id="{{ product.id }}"
                     data-product-name="{{ product.name|escape }}"
                 >
-                    🛒 Add to Cart
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    Add to Cart
                 </button>
 
-                <button
-                    class="buy-now-button"
-                    type="button"
-                    data-product-id="{{ product.id }}"
-                    data-product-name="{{ product.name|escape }}"
+                <!-- BUY NOW -->
+                <form
+                    method="POST"
+                    action="{% url 'buy-now' product.id %}"
+                    class="detail-buy-form"
                 >
-                    ⚡ Buy Now
-                </button>
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="quantity"
+                        value="1"
+                    >
+
+                    <button
+                        class="buy-now-button"
+                        type="submit"
+                    >
+                        <i class="fa-solid fa-bolt"></i>
+                        Buy Now
+                    </button>
+                </form>
+
             </div>
 
+            <!-- PRODUCT FEATURES -->
             <div class="detail-features">
+
                 <div class="feature-item">
                     <strong>Category</strong>
                     <span>{{ product.category }}</span>
@@ -98,11 +131,16 @@
                     <strong>Delivery</strong>
                     <span>Fast delivery</span>
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
+    <!-- PRODUCT DESCRIPTION -->
     <div class="product-about">
+
         <h2>About this item</h2>
 
         {% if product.description %}
@@ -112,15 +150,22 @@
                 No additional information is available for this product yet.
             </p>
         {% endif %}
+
     </div>
 
+    <!-- PRODUCT SPECIFICATIONS -->
     {% if product.specifications.exists %}
+
         <section class="system-details">
+
             <h2>System Details</h2>
 
             <div class="specification-table">
+
                 {% for specification in product.specifications.all %}
+
                     <div class="specification-row">
+
                         <div class="specification-label">
                             {{ specification.label }}
                         </div>
@@ -128,11 +173,17 @@
                         <div class="specification-value">
                             {{ specification.value }}
                         </div>
+
                     </div>
+
                 {% endfor %}
+
             </div>
+
         </section>
+
     {% endif %}
+
 </section>
 
 {% endblock %}

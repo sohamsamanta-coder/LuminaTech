@@ -27,6 +27,19 @@ urlpatterns = [
 
     # Cart page
     path("cart/", views.cart, name="cart"),
+    # Checkout
+    path("checkout/", views.checkout, name="checkout"),
+    path("payment/", views.payment, name="payment"),
+    path(
+        "order-success/<str:order_number>/",
+        views.order_success,
+        name="order-success"
+    ),
+    path(
+        "buy-now/<int:product_id>/",
+        views.buy_now,
+        name="buy-now"
+    ),
 
     # Cart API
     path("cart/state/", views.cart_state, name="cart-state"),
