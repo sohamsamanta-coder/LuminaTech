@@ -1,19 +1,58 @@
+
 """
 Django settings for the LuminaTech project.
 """
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+
+# ================= BASE DIRECTORY =================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from the project root .env file
+load_dotenv(BASE_DIR / ".env")
+
+
+# ================= SECURITY SETTINGS =================
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+
+if not SECRET_KEY:
+    raise RuntimeError(
+        "DJANGO_SECRET_KEY is missing from environment variables."
+    )
+
+DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() in (
+    "true", "1", "yes"
+)
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "DJANGO_ALLOWED_HOSTS",
+        "127.0.0.1,localhost"
+    ).split(",")
+    if host.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "DJANGO_CSRF_TRUSTED_ORIGINS", ""
+    ).split(",")
+    if origin.strip()
+]
+
+
+# ================= GEMINI AI CONFIGURATION =================
+
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-SECRET_KEY = "django-insecure-change-this-for-production"
-DEBUG = True
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+
+# ================= INSTALLED APPLICATIONS =================
 
 INSTALLED_APPS = [
     "Ltfront",
@@ -25,6 +64,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 ]
 
+
+# ================= MIDDLEWARE =================
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -35,7 +77,15 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
+# ================= PROJECT CONFIGURATION =================
+
 ROOT_URLCONF = "LuminaTech.urls"
+
+WSGI_APPLICATION = "LuminaTech.wsgi.application"
+
+
+# ================= TEMPLATES =================
 
 TEMPLATES = [
     {
@@ -53,7 +103,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "LuminaTech.wsgi.application"
+
+# ================= DATABASE =================
 
 DATABASES = {
     "default": {
@@ -61,6 +112,9 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+
+
+# ================= PASSWORD VALIDATION =================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -77,26 +131,66 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+# ================= LANGUAGE AND TIME =================
+
 LANGUAGE_CODE = "en-us"
+
 TIME_ZONE = "UTC"
+
 USE_I18N = True
+
 USE_TZ = True
+
+
+# ================= STATIC FILES =================
 
 STATIC_URL = "/static/"
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+# ================= MEDIA FILES =================
+
 MEDIA_URL = "/media/"
+
 MEDIA_ROOT = BASE_DIR / "media"
+
+
 # ================= EMAIL CONFIGURATION =================
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in (
+    "true", "1", "yes"
+)
+
+EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() in (
+    "true", "1", "yes"
+)
 
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-FEEDBACK_RECEIVER_EMAIL = DEFAULT_FROM_EMAIL
+DEFAULT_FROM_EMAIL = os.getenv(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER or ""
+)
+
+# Customer feedback goes to the official LuminaTech email.
+FEEDBACK_RECEIVER_EMAIL = os.getenv(
+    "FEEDBACK_RECEIVER_EMAIL",
+    DEFAULT_FROM_EMAIL
+)
+
+EMAIL_TIMEOUT = 20
+
+
+# ================= DEFAULT PRIMARY KEY =================
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
