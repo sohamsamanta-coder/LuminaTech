@@ -1,10 +1,10 @@
 {% extends "shop/base.html" %}
 {% load static %}
 
-
 {% block title %}
     LuminaTech Electronics Store
 {% endblock %}
+
 {% block header_class %}
     hero-header
 {% endblock %}
@@ -22,6 +22,7 @@
             <p class="hero-eyebrow">
                 SMART TECHNOLOGY. BETTER LIVING.
             </p>
+
             <h1>
                 Power Up Your World
             </h1>
@@ -31,10 +32,7 @@
                 headphones and more — all in one place.
             </p>
 
-            <a
-                href="#products"
-                class="hero-button"
-            >
+            <a href="#products" class="hero-button">
                 Shop Now
             </a>
 
@@ -61,7 +59,12 @@
 
         <!-- ================= FILTER AREA ================= -->
 
-        <div class="filter-area">
+        <form
+            class="filter-area"
+            id="productFilterForm"
+            method="GET"
+            action="{% url 'home-page' %}#products"
+        >
 
             <label
                 class="sr-only"
@@ -72,11 +75,12 @@
 
             <input
                 id="productSearch"
+                name="q"
                 type="search"
+                value="{{ search_query }}"
                 placeholder="Search electronics..."
                 autocomplete="off"
             >
-
 
             <label
                 class="sr-only"
@@ -85,7 +89,10 @@
                 Filter by category
             </label>
 
-            <select id="categoryFilter">
+            <select
+                id="categoryFilter"
+                name="category"
+            >
 
                 <option value="">
                     All Categories
@@ -93,7 +100,10 @@
 
                 {% for category in categories %}
 
-                    <option value="{{ category }}">
+                    <option
+                        value="{{ category }}"
+                        {% if selected_category == category %}selected{% endif %}
+                    >
                         {{ category }}
                     </option>
 
@@ -101,15 +111,14 @@
 
             </select>
 
-
             <button
                 id="searchBtn"
-                type="button"
+                type="submit"
             >
                 Search
             </button>
 
-        </div>
+        </form>
 
     </section>
 
@@ -140,6 +149,7 @@
                 <div class="product-image">
 
                     {% if product.uploaded_image %}
+
                         <img
                             src="{{ product.uploaded_image.url }}"
                             alt="{{ product.name }}"
@@ -147,7 +157,9 @@
                             width="300"
                             height="200"
                         >
+
                     {% else %}
+
                         <img
                             src="{% static product.image %}"
                             alt="{{ product.name }}"
@@ -155,6 +167,7 @@
                             width="300"
                             height="200"
                         >
+
                     {% endif %}
 
                 </div>
@@ -192,7 +205,7 @@
                         class="add-button"
                         type="button"
                     >
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i> 
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
                         Add to Cart
                     </button>
 
@@ -205,15 +218,7 @@
 
             <p class="empty-message empty-message-full">
 
-                No electronics products are available yet.
-
-                Run
-
-                <code>
-                    python manage.py seed_products
-                </code>
-
-                to add the demo products.
+                No electronics products match your search or selected category.
 
             </p>
 
@@ -222,57 +227,103 @@
     </section>
 
 
-    <!-- EMPTY SEARCH RESULT -->
+    <!-- ================= PRODUCT PAGINATION ================= -->
 
-    <p
-        id="emptyMessage"
-        class="empty-message"
-        hidden
-    >
-        No electronics products match your search.
-    </p>
-            {% if page_obj.paginator.num_pages > 1 %}
-            <nav class="product-pagination-wrap" aria-label="Product pagination">
-                <div class="product-pagination">
+    {% if page_obj.paginator.num_pages > 1 %}
 
-                    {% if page_obj.has_previous %}
-                        <a
-                            class="product-page-arrow"
-                            href="?page={{ page_obj.previous_page_number }}#products"
-                            aria-label="Previous page"
-                        >&#8249;</a>
+        <nav
+            class="product-pagination-wrap"
+            aria-label="Product pagination"
+        >
+
+            <div class="product-pagination">
+
+
+                <!-- PREVIOUS PAGE -->
+
+                {% if page_obj.has_previous %}
+
+                    <a
+                        class="product-page-arrow"
+                        href="?q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}&page={{ page_obj.previous_page_number }}#products"
+                        aria-label="Previous page"
+                    >
+                        &#8249;
+                    </a>
+
+                {% else %}
+
+                    <span
+                        class="product-page-arrow disabled"
+                        aria-disabled="true"
+                    >
+                        &#8249;
+                    </span>
+
+                {% endif %}
+
+
+                <!-- PAGE NUMBERS -->
+
+                {% for page_number in page_range %}
+
+                    {% if page_number == "…" %}
+
+                        <span class="product-page-ellipsis">
+                            …
+                        </span>
+
+                    {% elif page_number == page_obj.number %}
+
+                        <span
+                            class="product-page-link active"
+                            aria-current="page"
+                        >
+                            {{ page_number }}
+                        </span>
+
                     {% else %}
-                        <span class="product-page-arrow disabled" aria-disabled="true">&#8249;</span>
+
+                        <a
+                            class="product-page-link"
+                            href="?q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}&page={{ page_number }}#products"
+                        >
+                            {{ page_number }}
+                        </a>
+
                     {% endif %}
 
-                    {% for page_number in page_range %}
-                        {% if page_number == "…" %}
-                            <span class="product-page-ellipsis">…</span>
-                        {% elif page_number == page_obj.number %}
-                            <span class="product-page-link active" aria-current="page">
-                                {{ page_number }}
-                            </span>
-                        {% else %}
-                            <a
-                                class="product-page-link"
-                                href="?page={{ page_number }}#products"
-                            >{{ page_number }}</a>
-                        {% endif %}
-                    {% endfor %}
+                {% endfor %}
 
-                    {% if page_obj.has_next %}
-                        <a
-                            class="product-page-arrow"
-                            href="?page={{ page_obj.next_page_number }}#products"
-                            aria-label="Next page"
-                        >&#8250;</a>
-                    {% else %}
-                        <span class="product-page-arrow disabled" aria-disabled="true">&#8250;</span>
-                    {% endif %}
 
-                </div>
-            </nav>
-        {% endif %}
+                <!-- NEXT PAGE -->
+
+                {% if page_obj.has_next %}
+
+                    <a
+                        class="product-page-arrow"
+                        href="?q={{ search_query|urlencode }}&category={{ selected_category|urlencode }}&page={{ page_obj.next_page_number }}#products"
+                        aria-label="Next page"
+                    >
+                        &#8250;
+                    </a>
+
+                {% else %}
+
+                    <span
+                        class="product-page-arrow disabled"
+                        aria-disabled="true"
+                    >
+                        &#8250;
+                    </span>
+
+                {% endif %}
+
+            </div>
+
+        </nav>
+
+    {% endif %}
 
 
 {% endblock %}

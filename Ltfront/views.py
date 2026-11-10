@@ -16,7 +16,7 @@ from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
 from django.core.validators import validate_email
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
@@ -26,33 +26,66 @@ from .models import CartItem, Order, OrderItem, Product
 
 # HOME PAGE
 def home(request):
-    products = Product.objects.all()
+
+    products = Product.objects.all().order_by("id")
+
+    # Get search and category filters
+    search_query = request.GET.get("q", "").strip()
+    selected_category = request.GET.get("category", "").strip()
+
+    # Apply category filter before pagination
+    if selected_category:
+
+        category_value = next(
+            (
+                value
+                for value, label in Product.CATEGORY_CHOICES
+                if selected_category.casefold() in (
+                    str(value).casefold(),
+                    str(label).casefold(),
+                )
+            ),
+            None,
+        )
+
+        if category_value is not None:
+            products = products.filter(category=category_value)
+        else:
+            products = products.none()
+
+    # Apply search across all matching products
+    if search_query:
+        products = products.filter(
+            Q(name__icontains=search_query)
+            | Q(category__icontains=search_query)
+            | Q(description__icontains=search_query)
+        )
+
+    # Paginate only after filtering
     paginator = Paginator(products, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
-    categories = [label for _, label in Product.CATEGORY_CHOICES]
+
+    categories = [
+        label for _, label in Product.CATEGORY_CHOICES
+    ]
 
     return render(
-
         request,
-
         "shop/home.html",
-
         {
-
             "products": page_obj,
-
             "page_obj": page_obj,
-
             "page_range": paginator.get_elided_page_range(
-
                 number=page_obj.number,
                 on_each_side=1,
                 on_ends=1,
             ),
             "categories": categories,
+            "search_query": search_query,
+            "selected_category": selected_category,
         },
-
     )
+
 
 # PRODUCT DETAIL PAGE
 

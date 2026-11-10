@@ -1,3 +1,4 @@
+
 "use strict";
 
 // ================= PAGE ELEMENTS =================
@@ -7,17 +8,24 @@ const topSearchInput = document.getElementById("topSearch");
 const topSearchButton = document.getElementById("topSearchBtn");
 const categoryFilter = document.getElementById("categoryFilter");
 const searchButton = document.getElementById("searchBtn");
-const emptyMessage = document.getElementById("emptyMessage");
 const cartCount = document.getElementById("cartCount");
 const cartLink = document.getElementById("cartLink");
 const loginLink = document.getElementById("loginLink");
 const registerLink = document.getElementById("registerLink");
 
-const productCards = Array.from(document.querySelectorAll(".product-card"));
-const categoryLinks = Array.from(
-  document.querySelectorAll(".category-bar a[data-category]"),
+const productFilterForm = document.getElementById("productFilterForm");
+
+const productCards = Array.from(
+    document.querySelectorAll(".product-card")
 );
-const addButtons = Array.from(document.querySelectorAll(".add-button"));
+
+const categoryLinks = Array.from(
+    document.querySelectorAll(".category-bar a[data-category]")
+);
+
+const addButtons = Array.from(
+    document.querySelectorAll(".add-button")
+);
 
 
 // ================= DATABASE CART STORAGE =================
@@ -29,8 +37,10 @@ let cart = new Map();
 let cartCountTotal = 0;
 
 
-// Get Django CSRF token for secure POST requests
+// ================= CSRF TOKEN =================
+
 function getCsrfToken() {
+
     const cookie = document.cookie.match(
         /(?:^|;\s*)csrftoken=([^;]+)/
     );
@@ -51,8 +61,12 @@ function getCsrfToken() {
 }
 
 
+// ================= CART STATE =================
+
 // Update the cart using data received from Django
+
 function updateCartFromServer(data) {
+
     const items = Array.isArray(data.items) ? data.items : [];
 
     cart = new Map(
@@ -70,7 +84,9 @@ function updateCartFromServer(data) {
 
 
 // Update navbar cart badge
+
 function updateCartCount() {
+
     if (!cartCount) {
         return;
     }
@@ -81,8 +97,11 @@ function updateCartCount() {
 
 
 // Update Add to Cart button appearance
+
 function updateCartButtons() {
+
     addButtons.forEach(function (button) {
+
         const card = button.closest(".product-card");
 
         const productId = String(
@@ -98,13 +117,18 @@ function updateCartButtons() {
             : '<i class="fa-solid fa-plus" aria-hidden="true"></i> Add to Cart';
 
         button.setAttribute("aria-pressed", String(isAdded));
+
     });
+
 }
 
 
 // Fetch the current cart from Django
+
 async function loadCartFromServer() {
+
     try {
+
         const response = await fetch(CART_STATE_URL, {
             method: "GET",
             credentials: "same-origin",
@@ -120,22 +144,30 @@ async function loadCartFromServer() {
         updateCartFromServer(data);
 
     } catch (error) {
+
         console.error("Cart loading error:", error);
+
     }
+
 }
 
 
 // Send cart changes to Django
+
 async function sendCartRequest(url, payload) {
+
     const csrfToken = getCsrfToken();
 
     if (!csrfToken) {
+
         throw new Error(
             "Django CSRF token not found. Please check the CSRF setup."
         );
+
     }
 
     const response = await fetch(url, {
+
         method: "POST",
 
         credentials: "same-origin",
@@ -146,172 +178,254 @@ async function sendCartRequest(url, payload) {
         },
 
         body: JSON.stringify(payload)
+
     });
 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
+
         throw new Error(
             data.error || "Unable to update your cart."
         );
+
     }
 
     updateCartFromServer(data);
 
     return data;
+
 }
 
 
+// ================= SERVER-SIDE PRODUCT FILTERING =================
 
-// ================= PRODUCT FILTERING =================
+// Update active category navigation link
 
 function updateActiveCategory() {
-  const selectedCategory = categoryFilter
-    ? categoryFilter.value.toLowerCase().trim()
-    : "";
 
-  categoryLinks.forEach(function (link) {
-    const linkCategory = (link.dataset.category || "").toLowerCase().trim();
-    link.classList.toggle(
-      "active",
-      selectedCategory !== "" && linkCategory === selectedCategory,
-    );
-  });
+    const selectedCategory = categoryFilter
+        ? categoryFilter.value.toLowerCase().trim()
+        : "";
+
+    categoryLinks.forEach(function (link) {
+
+        const linkCategory = (
+            link.dataset.category || ""
+        ).toLowerCase().trim();
+
+        link.classList.toggle(
+            "active",
+            selectedCategory !== "" &&
+            linkCategory === selectedCategory
+        );
+
+    });
+
 }
 
-function filterProducts() {
-  if (!searchInput || !categoryFilter) {
-    return;
-  }
 
-  const searchText = searchInput.value.toLowerCase().trim();
-  const selectedCategory = categoryFilter.value.toLowerCase().trim();
+// Submit category and search filters to Django
 
-  let visibleProducts = 0;
+function submitProductFilters() {
 
-  productCards.forEach(function (card) {
-    const productName = (card.dataset.name || "").toLowerCase();
-    const productCategory = (card.dataset.category || "").toLowerCase();
+    if (productFilterForm) {
 
-    const textMatches =
-      searchText === "" ||
-      productName.includes(searchText) ||
-      productCategory.includes(searchText);
+        productFilterForm.requestSubmit();
 
-    const categoryMatches =
-      selectedCategory === "" || productCategory === selectedCategory;
-
-    const shouldShow = textMatches && categoryMatches;
-    card.hidden = !shouldShow;
-
-    if (shouldShow) {
-      visibleProducts += 1;
     }
-  });
 
-  if (emptyMessage) {
-    emptyMessage.hidden = visibleProducts !== 0;
-  }
-
-  updateActiveCategory();
 }
+
 
 // ================= SEARCH =================
 
-function copyTopSearchAndFilter() {
-  if (!topSearchInput || !searchInput) {
-    return;
-  }
+// Copy navbar search into the main search form
+// Django handles the actual search.
 
-  searchInput.value = topSearchInput.value;
-  filterProducts();
-  document.getElementById("products")?.scrollIntoView({ behavior: "smooth" });
+function copyTopSearchAndFilter(event) {
+
+    if (event) {
+        event.preventDefault();
+    }
+
+    const searchText = topSearchInput
+        ? topSearchInput.value.trim()
+        : "";
+
+    if (searchInput && productFilterForm) {
+
+        searchInput.value = searchText;
+
+        submitProductFilters();
+
+    } else {
+
+        // When searching from another page, go to the home page.
+
+        window.location.href =
+            `/?q=${encodeURIComponent(searchText)}#products`;
+
+    }
+
 }
 
-if (searchButton) {
-  searchButton.addEventListener("click", filterProducts);
+
+// Main search form
+
+if (productFilterForm) {
+
+    productFilterForm.addEventListener("submit", function () {
+
+        // Allow the browser to submit the GET form normally.
+
+    });
+
 }
+
+
+// Navbar search button
 
 if (topSearchButton) {
-  topSearchButton.addEventListener("click", copyTopSearchAndFilter);
+
+    topSearchButton.addEventListener(
+        "click",
+        copyTopSearchAndFilter
+    );
+
 }
 
-if (searchInput) {
-  searchInput.addEventListener("input", filterProducts);
-  searchInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      filterProducts();
-    }
-  });
-}
+
+// Keep navbar search and main search synchronized
 
 if (topSearchInput) {
-  topSearchInput.addEventListener("input", function () {
-    if (searchInput) {
-      searchInput.value = topSearchInput.value;
-    }
-    filterProducts();
-  });
 
-  topSearchInput.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      copyTopSearchAndFilter();
-    }
-  });
+    topSearchInput.addEventListener("input", function () {
+
+        if (searchInput) {
+
+            searchInput.value = topSearchInput.value;
+
+        }
+
+    });
+
+
+    topSearchInput.addEventListener("keydown", function (event) {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            copyTopSearchAndFilter();
+
+        }
+
+    });
+
 }
+
 
 // ================= CATEGORY FILTER =================
 
-if (categoryFilter) {
-  categoryFilter.addEventListener("change", filterProducts);
+// Submit automatically when category changes
+
+if (categoryFilter && productFilterForm) {
+
+    categoryFilter.addEventListener("change", function () {
+
+        submitProductFilters();
+
+    });
+
 }
+
+
+// Category navigation links
 
 categoryLinks.forEach(function (link) {
-  link.addEventListener("click", function () {
-    const categoryName = link.dataset.category || "";
 
-    if (categoryFilter) {
-      categoryFilter.value = categoryName;
-    }
+    link.addEventListener("click", function (event) {
 
-    if (searchInput) {
-      searchInput.value = "";
-    }
+        if (!categoryFilter || !productFilterForm) {
 
-    if (topSearchInput) {
-      topSearchInput.value = "";
-    }
+            // If the user is on another page, navigate to
+            // the home page with the selected category.
 
-    filterProducts();
-  });
+            const categoryName = link.dataset.category || "";
+
+            event.preventDefault();
+
+            window.location.href =
+                `/?category=${encodeURIComponent(categoryName)}#products`;
+
+            return;
+
+        }
+
+        event.preventDefault();
+
+        const categoryName = link.dataset.category || "";
+
+        categoryFilter.value = categoryName;
+
+        if (searchInput) {
+            searchInput.value = "";
+        }
+
+        if (topSearchInput) {
+            topSearchInput.value = "";
+        }
+
+        submitProductFilters();
+
+    });
+
 });
 
-// Keep these functions available if another page or inline HTML uses them.
+
+// Keep these functions available for existing HTML
+
 function searchFromTop() {
-  copyTopSearchAndFilter();
+
+    copyTopSearchAndFilter();
+
 }
+
 
 function selectCategory(categoryName) {
-  if (categoryFilter) {
-    categoryFilter.value = categoryName;
-  }
 
-  if (searchInput) {
-    searchInput.value = "";
-  }
+    if (categoryFilter && productFilterForm) {
 
-  if (topSearchInput) {
-    topSearchInput.value = "";
-  }
+        categoryFilter.value = categoryName;
 
-  filterProducts();
+        if (searchInput) {
+            searchInput.value = "";
+        }
+
+        if (topSearchInput) {
+            topSearchInput.value = "";
+        }
+
+        submitProductFilters();
+
+    } else {
+
+        window.location.href =
+            `/?category=${encodeURIComponent(categoryName)}#products`;
+
+    }
+
 }
+
 
 window.searchFromTop = searchFromTop;
 window.selectCategory = selectCategory;
 
+
+// Highlight the selected category on page load
+
+updateActiveCategory();
 
 
 // ================= ADD TO CART =================
@@ -333,18 +447,26 @@ addButtons.forEach(function (button) {
         button.disabled = true;
 
         try {
+
             await sendCartRequest(CART_ADD_URL, {
+
                 product_id: parseInt(productId, 10),
                 quantity: 1
+
             });
 
         } catch (error) {
+
             console.error("Add to Cart error:", error);
+
             alert(error.message);
 
         } finally {
+
             button.disabled = false;
+
             updateCartButtons();
+
         }
 
     });
@@ -356,115 +478,161 @@ addButtons.forEach(function (button) {
 
 updateCartCount();
 updateCartButtons();
-filterProducts();
 loadCartFromServer();
-// LUMINA AI CHATBOT
+
+
+// ================= LUMINA AI CHATBOT =================
 
 const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
 const chatMessages = document.getElementById("chatMessages");
 
 if (chatForm) {
-  chatForm.addEventListener("submit", async function (event) {
-    event.preventDefault();
 
-    const message = chatInput.value.trim();
+    chatForm.addEventListener("submit", async function (event) {
 
-    if (!message) {
-      return;
-    }
+        event.preventDefault();
 
-    // Show user message
-    const userMessage = document.createElement("div");
+        const message = chatInput.value.trim();
 
-    userMessage.className = "user-message";
-    userMessage.textContent = message;
+        if (!message) {
+            return;
+        }
 
-    chatMessages.appendChild(userMessage);
+        // Show user message
 
-    // Clear input
-    chatInput.value = "";
+        const userMessage = document.createElement("div");
 
-    // Show loading message
-    const botMessage = document.createElement("div");
+        userMessage.className = "user-message";
+        userMessage.textContent = message;
 
-    botMessage.className = "bot-message";
-    botMessage.textContent = "Thinking...";
+        chatMessages.appendChild(userMessage);
 
-    chatMessages.appendChild(botMessage);
 
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Clear input
 
-    try {
-      const formData = new FormData(chatForm);
+        chatInput.value = "";
 
-      formData.set("message", message);
 
-      const response = await fetch("/chatbot/", {
-        method: "POST",
-        body: formData,
-      });
+        // Show loading message
 
-      const data = await response.json();
+        const botMessage = document.createElement("div");
 
-      if (!response.ok) {
-        throw new Error(data.reply || "Request failed");
-      }
+        botMessage.className = "bot-message";
+        botMessage.textContent = "Thinking...";
 
-      const reply = data.reply || "No response received.";
+        chatMessages.appendChild(botMessage);
 
-      if (window.marked && window.DOMPurify) {
-        botMessage.innerHTML = window.DOMPurify.sanitize(
-          window.marked.parse(reply),
-        );
-      } else {
-        botMessage.textContent = reply;
-      }
-    } catch (error) {
-      console.error("Lumina error:", error);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
 
-      botMessage.textContent =
-        "Sorry, Lumina could not connect to the AI service.";
-    }
 
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  });
+        try {
+
+            const formData = new FormData(chatForm);
+
+            formData.set("message", message);
+
+            const response = await fetch("/chatbot/", {
+
+                method: "POST",
+                body: formData
+
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(data.reply || "Request failed");
+
+            }
+
+            const reply = data.reply || "No response received.";
+
+            if (window.marked && window.DOMPurify) {
+
+                botMessage.innerHTML = window.DOMPurify.sanitize(
+                    window.marked.parse(reply)
+                );
+
+            } else {
+
+                botMessage.textContent = reply;
+
+            }
+
+        } catch (error) {
+
+            console.error("Lumina error:", error);
+
+            botMessage.textContent =
+                "Sorry, Lumina could not connect to the AI service.";
+
+        }
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    });
+
 }
 
-// LUMINA CHAT WINDOW
+
+// ================= LUMINA CHAT WINDOW =================
 
 const luminaButton = document.getElementById("luminaButton");
 const luminaChat = document.getElementById("luminaChat");
 const luminaClose = document.getElementById("luminaClose");
 
+
 // Open / Close Lumina
 
 if (luminaButton && luminaChat) {
-  luminaButton.addEventListener("click", function () {
-    luminaChat.classList.toggle("open");
-  });
+
+    luminaButton.addEventListener("click", function () {
+
+        luminaChat.classList.toggle("open");
+
+    });
+
 }
+
 
 // Close button
 
 if (luminaClose && luminaChat) {
-  luminaClose.addEventListener("click", function () {
-    luminaChat.classList.remove("open");
-  });
+
+    luminaClose.addEventListener("click", function () {
+
+        luminaChat.classList.remove("open");
+
+    });
+
 }
+
+
+// ================= PRODUCT CARD NAVIGATION =================
+
 document.querySelectorAll(".product-card").forEach((card) => {
-  card.addEventListener("click", (event) => {
-    if (event.target.closest("button, a, input, select")) {
-      return;
-    }
 
-    const productId = card.dataset.productId;
+    card.addEventListener("click", (event) => {
 
-    if (productId) {
-      window.location.href = `/product/${productId}/`;
-    }
-  });
+        if (event.target.closest("button, a, input, select")) {
+            return;
+        }
+
+        const productId = card.dataset.productId;
+
+        if (productId) {
+
+            window.location.href = `/product/${productId}/`;
+
+        }
+
+    });
+
 });
+
+
 // ================= MOBILE HAMBURGER MENU =================
 
 const mobileMenuBtn = document.getElementById("mobileMenuBtn");
@@ -487,23 +655,41 @@ if (mobileMenuBtn && userLinks) {
             "aria-label",
             isOpen ? "Close navigation menu" : "Open navigation menu"
         );
+
     });
+
 
     // Close menu after clicking a navigation link
+
     userLinks.querySelectorAll("a").forEach(function (link) {
+
         link.addEventListener("click", function () {
+
             userLinks.classList.remove("is-open");
+
             mobileMenuBtn.classList.remove("is-open");
+
             mobileMenuBtn.setAttribute("aria-expanded", "false");
+
         });
+
     });
 
+
     // Close menu using Escape
+
     document.addEventListener("keydown", function (event) {
+
         if (event.key === "Escape") {
+
             userLinks.classList.remove("is-open");
+
             mobileMenuBtn.classList.remove("is-open");
+
             mobileMenuBtn.setAttribute("aria-expanded", "false");
+
         }
+
     });
+
 }
