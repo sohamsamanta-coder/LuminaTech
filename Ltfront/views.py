@@ -7,8 +7,10 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
+from django.urls import reverse
 from django.core.mail import send_mail
 from django.core.mail import EmailMessage
 from django.core.paginator import Paginator
@@ -93,10 +95,18 @@ def about(request):
 
     return render(request, "shop/about.html")
 
-@login_required
+
+
+
 def contact(request):
 
-    user_email = (request.user.email or "").strip()
+    is_authenticated = request.user.is_authenticated
+
+    # Fetch the registered email only for logged-in users
+    account_email = (
+        (request.user.email or "").strip()
+        if is_authenticated else ""
+    )
 
     if request.method == "POST":
 
@@ -105,23 +115,40 @@ def contact(request):
         mobile_number = request.POST.get("mobile_number", "").strip()
         feedback_message = request.POST.get("message", "").strip()
 
-        if not user_email:
-            messages.error(
+        # Logged-out visitor: show notification without sending email
+        if not is_authenticated:
+
+            messages.info(
                 request,
-                "Please add an email address to your account first."
+                "Please log in to your LuminaTech account before submitting your feedback. Your message has not been sent."
             )
 
-        elif not first_name or not mobile_number or not feedback_message:
-            messages.error(
-                request,
-                "Please fill in all required fields."
-            )
+            form_email = request.POST.get("email", "").strip()
 
         else:
+            # Always use the registered account email
+            user_email = account_email
+            form_email = account_email
 
-            subject = f"New Feedback from {first_name} {last_name}"
+            if not user_email:
 
-            body = f"""
+                messages.error(
+                    request,
+                    "Please add an email address to your account first."
+                )
+
+            elif not first_name or not mobile_number or not feedback_message:
+
+                messages.error(
+                    request,
+                    "Please fill in all required fields."
+                )
+
+            else:
+
+                subject = f"New Feedback from {first_name} {last_name}"
+
+                body = f"""
 New Customer Feedback - LuminaTech
 
 CUSTOMER DETAILS
@@ -136,49 +163,64 @@ FEEDBACK MESSAGE
 {feedback_message}
 """
 
-            try:
-                email = EmailMessage(
-                    subject=subject,
-                    body=body,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[settings.FEEDBACK_RECEIVER_EMAIL],
-                    reply_to=[user_email],
-                )
+                try:
 
-                email.send(fail_silently=False)
+                    email = EmailMessage(
+                        subject=subject,
+                        body=body,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        to=[settings.FEEDBACK_RECEIVER_EMAIL],
+                        reply_to=[user_email],
+                    )
 
-                messages.success(
-                    request,
-                    "Thank you for contacting LuminaTech. Your message has been received by our support team. We'll get back to you as soon as possible."
-                )
+                    email.send(fail_silently=False)
 
-                return redirect(request.path)
+                    messages.success(
+                        request,
+                        "Thank you for contacting LuminaTech. Your feedback has been submitted successfully. Our support team will get back to you soon."
+                    )
 
-            except Exception:
-                logging.exception("LuminaTech feedback email failed.")
+                    return redirect(request.path)
 
-                messages.error(
-                    request,
-                    "Unable to send your feedback. Please try again later."
-                )
+                except Exception:
+
+                    logging.exception("LuminaTech feedback email failed.")
+
+                    messages.error(
+                        request,
+                        "Unable to send your feedback. Please try again later."
+                    )
+
+    else:
+
+        first_name = (
+            request.user.first_name if is_authenticated else ""
+        )
+
+        last_name = (
+            request.user.last_name if is_authenticated else ""
+        )
+
+        mobile_number = ""
+        feedback_message = ""
+        form_email = account_email
 
     return render(
         request,
         "shop/contact.html",
         {
-            "account_email": user_email,
-            "first_name": request.user.first_name,
-            "last_name": request.user.last_name,
+            "is_authenticated": is_authenticated,
+            "account_email": account_email,
+            "form_email": form_email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "mobile_number": mobile_number,
+            "feedback_message": feedback_message,
         }
     )
 
 
-
-
-
 # CART PAGE
-
-
 
 def cart(request):
 
@@ -973,28 +1015,18 @@ def login_view(request):
 Hi {user.username},
 
 
-
 We noticed a new login to your LuminaTech account.
-
 
 
 If this was you, no further action is needed — you're all set to go!
 
-
-
 Didn't log in?
 
-
-
 If you didn't initiate this request, please reset your password
-
 immediately to secure your account and contact our support team.
 
 
-
 Best regards,
-
-
 
 The LuminaTech Team
 
@@ -1016,7 +1048,7 @@ The LuminaTech Team
 
 
 
-            messages.success(request, "You are now logged in.")
+
 
             if request.session.pop("continue_buy_now_after_login", False):
                 return redirect("checkout")
